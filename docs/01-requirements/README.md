@@ -1,12 +1,12 @@
 # Requirements
 
-| Attribute     | Value          |
-| ------------- | -------------- |
-| **Project**   | [Project Name] |
-| **Version**   | 0.1            |
-| **Status**    | Draft          |
-| **Readiness** | Draft          |
-| **Owner**     | Product Owner  |
+| Attribute     | Value         |
+| ------------- | ------------- |
+| **Project**   | DevWorkWire   |
+| **Version**   | 0.1           |
+| **Status**    | Draft         |
+| **Readiness** | Draft         |
+| **Owner**     | Product Owner |
 
 ## Purpose
 
@@ -18,10 +18,12 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ## Feature Map
 
-| Feature ID | Feature Name   | Outcome                                 | Priority | Status | Owner         | Details |
-| ---------- | -------------- | --------------------------------------- | -------- | ------ | ------------- | ------- |
-| F-001      | [Feature name] | [One-line outcome the feature delivers] | Must     | Draft  | Product Owner | F-001   |
-| F-002      | [Feature name] | [One-line outcome the feature delivers] | Should   | Draft  | Product Owner | F-002   |
+| Feature ID | Feature Name                 | Outcome                                                                                | Priority | Status | Owner         | Details                                     |
+| ---------- | ---------------------------- | -------------------------------------------------------------------------------------- | -------- | ------ | ------------- | ------------------------------------------- |
+| F-001      | Validate → Preview → Commit  | Loads a validated Epic/Story/AC document into Jira only after a confirmed preview.     | Must     | Draft  | Product Owner | [F-001](./f-001-validate-preview-commit.md) |
+| F-002      | Dedup on Re-Run              | Re-running an import updates matched Jira issues in place instead of duplicating them. | Must     | Draft  | Product Owner | [F-002](./f-002-dedup-on-rerun.md)          |
+| F-003      | CLI (dwire) Interactive Flow | Gives Maya a guided terminal flow to import, search, and insert work items.            | Must     | Draft  | Product Owner | [F-003](./f-003-cli-dwire-flow.md)          |
+| F-004      | MCP Server Tool Surface      | Gives an AI agent the same validate → preview → confirm gate as the CLI, via MCP.      | Should   | Draft  | Product Owner | [F-004](./f-004-mcp-tool-surface.md)        |
 
 ---
 
@@ -36,9 +38,9 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ### Current Feature Status
 
-[List the current status of each feature and the next step, e.g.:]
-
-All features are currently in **Draft** status.
+F-001 through F-004 are documented and currently in **Draft** status. Next step: review
+each feature's Functional/Non-Functional Requirements and Dependencies and Risks
+sections, then advance to **Review Pending** once open items are resolved.
 
 **Transition Path**: Draft → Review Pending → Clarified → Ready for Implementation
 
@@ -93,4 +95,4 @@ Implementation team has confirmed:
 
 ---
 
-**Last Updated**: YYYY-MM-DD
+**Last Updated**: 2026-08-28

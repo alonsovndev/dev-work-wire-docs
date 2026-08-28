@@ -1,14 +1,14 @@
 # Overview
 
-**Tagline**: _"[One-sentence positioning statement: who it serves, what it does, and the value it delivers.]"_
+**Tagline**: _"Load an already-defined work structure into your backlog, validated and duplicate-free — by hand or with your AI agent driving."_
 
 ## Core Concept
 
-[Describe the product in one paragraph: what it is, who it is for, and the core capability it provides.]
+DevWorkWire is an open-source tool that takes an already-defined, refined structure of work — Epics with their User Stories and Acceptance Criteria — and loads it, validated and reliably, into a project-tracking system (Jira first). It does not interpret free-form or ambiguous text; the structure must already be complete when it arrives (for example, a Markdown document with the Epic → Story → Acceptance Criteria hierarchy already worked out). DevWorkWire's job is to validate that structure, preview exactly what will be written, and apply it without creating duplicates on re-run — usable directly by a developer through the interactive `dwire` CLI, or by an AI agent through DevWorkWire's own MCP server.
 
 ### Vision Statement
 
-[Describe the long-term outcome the project aims to create. Keep it to 1–3 sentences.]
+DevWorkWire becomes the trusted, provider-agnostic bridge between refined planning documents and project trackers — for a developer working by hand, or their AI agent working on their behalf — without manual ticket wrangling or duplicate-creation risk.
 
 ---
 
@@ -16,19 +16,17 @@
 
 ### The Challenge
 
-Describe the pain points the target users experience today:
+Pain points the target users experience today:
 
-- **[Pain Point 1]**: [Why it hurts users and how often they hit it.]
-- **[Pain Point 2]**: [Why existing solutions fall short.]
-- **[Pain Point 3]**: [Cost of the problem: time, money, risk.]
+- **Manual copy-paste is slow and error-prone**: turning a refined Epic/Story/AC document into tickets today means hand-creating each item in the project management platform's UI — tedious, inconsistent field usage, and easy to miss a parent/child link or an Acceptance Criterion.
+- **Re-imports create duplicate tickets**: there is no safe way to re-run a load after the source document changes, so teams either avoid updating already-imported work or end up with duplicate Epics and Stories in the backlog.
 
 ### The Solution
 
-Describe how this project addresses those pain points:
+How DevWorkWire addresses those pain points:
 
-- **[Capability 1]**: [How it solves Pain Point 1.]
-- **[Capability 2]**: [How it solves Pain Point 2.]
-- **[Capability 3]**: [How it solves Pain Point 3.]
+- **Loading engine (validate → preview → confirm)**: DevWorkWire validates the structure's consistency (counts, parent/child links, required fields), shows a clear preview of exactly what will be written, and requires confirmation before it touches the tracker — solving the manual, error-prone copy-paste problem.
+- **Dedup on re-run**: re-running the same source file is treated as an update pass, matched by provider key or a stored import-source reference, so re-imports never create duplicate tickets.
 
 ---
 
@@ -36,15 +34,13 @@ Describe how this project addresses those pain points:
 
 ### Primary Audience
 
-- **[Primary Persona]**
-  - [What this group gains from the product.]
+- **Solo/small-team developer**
+  - Loads a refined Epic/Story/AC document into a project management platform (Jira first) and keeps it in sync from the terminal via the `dwire` CLI, without hand-creating tickets or risking duplicates on re-run.
 
 ### Secondary Audience
 
-- **[Secondary Persona 1]**
-  - [What this group gains from the product.]
-- **[Secondary Persona 2]**
-  - [What this group gains from the product.]
+- **Developer directing an AI coding agent**
+  - Lets their AI agent (Claude Code, OpenCode, Copilot, etc.) load work items and report progress through DevWorkWire's MCP server, while staying in the loop via the same confirm-before-execute gate the CLI uses — no looser, agent-only code path.
 
 > Link each audience to a full persona in [user-personas.md](./user-personas.md).
 
@@ -54,18 +50,18 @@ Describe how this project addresses those pain points:
 
 ### Professional Impact Goals
 
-- [Outcome the product should create for its users or domain.]
-- [Outcome the project should create for the team or organization building it.]
+- Eliminate manual, error-prone ticket creation for developers turning refined plans into their project management platform's backlog.
+- Give developers and their AI agents a trustworthy way to keep their project management platform in sync with planning documents, without duplicate-creation risk.
 
 ### Technical Goals
 
-- [Architectural goal, e.g. application structure, modularity, or platform constraints.]
-- [Quality goal, e.g. test coverage target or development methodology.]
-- [Security goal, e.g. compliance baseline or security-by-design commitment.]
+- Hexagonal architecture: a `WorkItemProvider` port so Jira ships first (Phase 1) and Linear/Azure DevOps can be added later (Phase 3) with no changes to the core service, CLI, or MCP tool definitions.
+- One core service (`WorkItemService`) shared by the CLI and the MCP server — no divergent logic between "human mode" and "agent mode".
+- Confirm-before-execute gate on every externally-visible action (comment, transition, import commit) for both front doors.
 
 ### Business Goals
 
-- [Adoption, revenue, community, or cost goal.]
+- [TBD — revisit once there is real usage data; no adoption/community target set yet.]
 
 ---
 
@@ -73,9 +69,10 @@ Describe how this project addresses those pain points:
 
 ### What Makes This Project Stand Out
 
-- **[Differentiator 1]**: [Why it is hard to replicate or genuinely better than alternatives.]
-- **[Differentiator 2]**: [Why it is hard to replicate or genuinely better than alternatives.]
+- **Same trust gate for humans and agents**: the CLI and the MCP server share the same `import.preview` → `import.commit` confirm gate on externally-visible actions — there is no separate, looser code path for AI agents to bypass.
+- **Own MCP server, any harness**: built directly against its target platform's REST API (Jira first) rather than a vendor agent SDK, so DevWorkWire's MCP server works with any MCP-compatible harness (Claude, OpenCode, Copilot, Antigravity, and future entrants) with no per-harness integration work.
 
 ---
 
-**Last Updated**: YYYY-MM-DD
+**Last Updated**: 2026-08-28
+

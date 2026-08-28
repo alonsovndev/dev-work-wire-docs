@@ -4,8 +4,8 @@
 | ----------------- | --------------------------- |
 | **Project**      | DevWorkWire                 |
 | **Version**      | 0.1                         |
-| **Status**       | Draft                       |
-| **Readiness**    | Draft                       |
+| **Status**       | Clarified                       |
+| **Readiness**    | Clarified                       |
 | **Owner**        | Product Owner               |
 
 ## Context
@@ -23,16 +23,16 @@ None currently blocking this feature.
 
 | ID        | Requirement                                                                                                    | Source                                                | Priority | Owner (DRI)   | Acceptance Criteria                                                                                                                        | Status |
 | --------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| FR-007-01 | The system adds a comment to a work item, gated by explicit confirmation.                                       | [User Personas](../00-context/user-personas.md#needs--expectations-1) | Must     | Product Owner | Given comment text and a work item ID, the comment is posted to Jira only after explicit confirmation; declining results in zero writes.        | Draft  |
-| FR-007-02 | The system transitions a work item's status, gated by explicit confirmation.                                    | [User Personas](../00-context/user-personas.md#needs--expectations-1) | Must     | Product Owner | Given a target status and a work item ID, the transition is applied in Jira only after explicit confirmation; declining results in zero writes. | Draft  |
-| FR-007-03 | The system records a PR URL reference against a work item (as a comment or dedicated field), gated by the same confirmation, with no PR-creation logic in DevWorkWire. | User clarification (F-007 PR scope)                       | Must     | Product Owner | Given a PR URL and a work item ID, the reference is written to Jira only after explicit confirmation; DevWorkWire never calls a Git/GitHub API to create a PR. | Draft  |
-| FR-007-04 | The system rejects any comment, transition, or PR-reference call that lacks explicit confirmation.               | User clarification (F-007 write-back gate)                 | Must     | Product Owner | Given a comment/transition/PR-reference call without a preceding confirmation, the call is rejected and no write reaches Jira.                   | Draft  |
+| FR-007-01 | The system adds a comment to a work item, gated by explicit confirmation.                                       | [User Personas](../00-context/user-personas.md#needs--expectations-1) | Must     | Product Owner | Given comment text and a work item ID, the comment is posted to Jira only after explicit confirmation; declining results in zero writes.        | Clarified  |
+| FR-007-02 | The system transitions a work item's status, gated by explicit confirmation.                                    | [User Personas](../00-context/user-personas.md#needs--expectations-1) | Must     | Product Owner | Given a target status and a work item ID, the transition is applied in Jira only after explicit confirmation; declining results in zero writes. | Clarified  |
+| FR-007-03 | The system records a PR URL reference against a work item (as a comment or dedicated field), gated by the same confirmation, with no PR-creation logic in DevWorkWire. | User clarification (F-007 PR scope)                       | Must     | Product Owner | Given a PR URL and a work item ID, the reference is written to Jira only after explicit confirmation; DevWorkWire never calls a Git/GitHub API to create a PR. | Clarified  |
+| FR-007-04 | The system rejects any comment, transition, or PR-reference call that lacks explicit confirmation.               | User clarification (F-007 write-back gate)                 | Must     | Product Owner | Given a comment/transition/PR-reference call without a preceding confirmation, the call is rejected and no write reaches Jira.                   | Clarified  |
 
 ## Feature-Scoped Non-Functional Requirements
 
 | ID         | Requirement                                                                                                  | Metric / Target                                                                                                        | Priority | Owner (DRI) | Status |
 | ---------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- | ------ |
-| NFR-007-01 | Comment, transition, and PR-reference writes accept a client-supplied idempotency key, consistent with F-004's `import.commit` pattern. | A retried call with the same idempotency key produces zero additional Jira writes, verified by test (mirrors NFR pattern in F-004). | Must     | Tech Lead   | Draft  |
+| NFR-007-01 | Comment, transition, and PR-reference writes accept a client-supplied idempotency key, consistent with F-004's `import.commit` pattern. | A retried call with the same idempotency key produces zero additional Jira writes, verified by test (mirrors NFR pattern in F-004). | Must     | Tech Lead   | Clarified  |
 
 ## Dependencies and Risks
 

@@ -4,8 +4,8 @@
 | ----------------- | --------------------------- |
 | **Project**      | DevWorkWire                 |
 | **Version**      | 0.1                         |
-| **Status**       | Draft                       |
-| **Readiness**    | Draft                       |
+| **Status**       | Clarified                       |
+| **Readiness**    | Clarified                       |
 | **Owner**        | Product Owner               |
 
 ## Context
@@ -23,17 +23,17 @@ None currently blocking this feature.
 
 | ID        | Requirement                                                                                                          | Source                                                   | Priority | Owner (DRI)   | Acceptance Criteria                                                                                                                                       | Status |
 | --------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- | -------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| FR-003-01 | The system provides a `dwire import <file>` command that runs validation, preview generation, and (on confirmation) commit as a single guided flow. | User clarification (F-003 CLI commands); [Overview](../00-context/overview.md#core-concept) | Must     | Product Owner | Given a valid source file path, running `dwire import <file>` shows validation results, then a preview, then a yes/no confirm prompt, then commits on "yes" — all within one invocation. | Draft  |
-| FR-003-02 | The system halts the guided flow and reports specific errors if validation fails, without proceeding to preview.     | [Overview](../00-context/overview.md#the-solution)          | Must     | Product Owner | Given a structurally invalid source document, `dwire import` prints item-identifying validation errors and exits without generating a preview or writing to Jira. | Draft  |
-| FR-003-03 | The system displays a read-only preview of all creates/updates and a single yes/no confirmation prompt before commit. | User clarification (F-003 preview interactivity)            | Must     | Product Owner | Given a validated document, the CLI renders the full preview to the terminal and blocks on one yes/no prompt; answering "no" cancels with zero writes.     | Draft  |
-| FR-003-04 | The system provides a way to search and select existing Jira work items from the CLI for everyday backlog work outside the import flow. | [User Personas](../00-context/user-personas.md#needs--expectations) | Should   | Product Owner | Given a search term, the CLI returns matching Jira work items the user can select from, without requiring a full document import.                         | Draft  |
-| FR-003-05 | The system provides a way to insert a stored source-document item into Jira by its ID, without re-running a full document import. | [User Personas](../00-context/user-personas.md#needs--expectations) | Should   | Product Owner | Given a known item ID from a previously validated/tracked source document, the CLI creates or updates just that item in Jira via the confirm gate.        | Draft  |
+| FR-003-01 | The system provides a `dwire import <file>` command that runs validation, preview generation, and (on confirmation) commit as a single guided flow. | User clarification (F-003 CLI commands); [Overview](../00-context/overview.md#core-concept) | Must     | Product Owner | Given a valid source file path, running `dwire import <file>` shows validation results, then a preview, then a yes/no confirm prompt, then commits on "yes" — all within one invocation. | Clarified  |
+| FR-003-02 | The system halts the guided flow and reports specific errors if validation fails, without proceeding to preview.     | [Overview](../00-context/overview.md#the-solution)          | Must     | Product Owner | Given a structurally invalid source document, `dwire import` prints item-identifying validation errors and exits without generating a preview or writing to Jira. | Clarified  |
+| FR-003-03 | The system displays a read-only preview of all creates/updates and a single yes/no confirmation prompt before commit. | User clarification (F-003 preview interactivity)            | Must     | Product Owner | Given a validated document, the CLI renders the full preview to the terminal and blocks on one yes/no prompt; answering "no" cancels with zero writes.     | Clarified  |
+| FR-003-04 | The system provides a way to search and select existing Jira work items from the CLI for everyday backlog work outside the import flow. | [User Personas](../00-context/user-personas.md#needs--expectations) | Should   | Product Owner | Given a search term, the CLI returns matching Jira work items the user can select from, without requiring a full document import.                         | Clarified  |
+| FR-003-05 | The system provides a way to insert a stored source-document item into Jira by its ID, without re-running a full document import. | [User Personas](../00-context/user-personas.md#needs--expectations) | Should   | Product Owner | Given a known item ID from a previously validated/tracked source document, the CLI creates or updates just that item in Jira via the confirm gate.        | Clarified  |
 
 ## Feature-Scoped Non-Functional Requirements
 
 | ID         | Requirement                                                                        | Metric / Target                                                                                                          | Priority | Owner (DRI) | Status |
 | ---------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------- | ------ |
-| NFR-003-01 | Preview output remains readable in a standard 80-column terminal for typical document sizes. | Manual review of preview rendering at 80 columns for a representative document (e.g. 5 Epics / 20 Stories) shows no unreadable truncation of essential fields. | Should   | Tech Lead   | Draft  |
+| NFR-003-01 | Preview output remains readable in a standard 80-column terminal for typical document sizes. | Manual review of preview rendering at 80 columns for a representative document (e.g. 5 Epics / 20 Stories) shows no unreadable truncation of essential fields. | Should   | Tech Lead   | Clarified  |
 
 ## Dependencies and Risks
 

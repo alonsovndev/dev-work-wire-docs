@@ -4,8 +4,8 @@
 | ------------- | ------------- |
 | **Project**   | DevWorkWire   |
 | **Version**   | 0.1           |
-| **Status**    | Draft         |
-| **Readiness** | Draft         |
+| **Status**    | Clarified     |
+| **Readiness** | Clarified     |
 | **Owner**     | Product Owner |
 
 ## Purpose
@@ -20,13 +20,15 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 | Feature ID | Feature Name                 | Outcome                                                                                | Priority | Status | Owner         | Details                                     |
 | ---------- | ---------------------------- | -------------------------------------------------------------------------------------- | -------- | ------ | ------------- | ------------------------------------------- |
-| F-001      | Validate → Preview → Commit  | Loads a validated Epic/Story/AC document into Jira only after a confirmed preview.     | Must     | Draft  | Product Owner | [F-001](./f-001-validate-preview-commit.md) |
-| F-002      | Dedup on Re-Run              | Re-running an import updates matched Jira issues in place instead of duplicating them. | Must     | Draft  | Product Owner | [F-002](./f-002-dedup-on-rerun.md)          |
-| F-003      | CLI (dwire) Interactive Flow | Gives Maya a guided terminal flow to import, search, and insert work items.            | Must     | Draft  | Product Owner | [F-003](./f-003-cli-dwire-flow.md)          |
-| F-004      | MCP Server Tool Surface      | Gives an AI agent the same validate → preview → confirm gate as the CLI, via MCP.      | Should   | Draft  | Product Owner | [F-004](./f-004-mcp-tool-surface.md)        |
-| F-005      | Individual Work Item CRUD    | Creates, reads, and updates a single Epic/Story without a full document re-import.     | Should   | Draft  | Product Owner | [F-005](./f-005-work-item-crud.md)          |
-| F-006      | MCP Work-Context Query       | Lets an agent ask what's ready to work / in progress before acting with the LLM.       | Should   | Draft  | Product Owner | [F-006](./f-006-mcp-work-context-query.md)  |
-| F-007      | Progress Reporting           | Reports comments, status transitions, and PR references through the same confirm gate. | Should   | Draft  | Product Owner | [F-007](./f-007-progress-reporting.md)      |
+| F-001      | Validate → Preview → Commit  | Loads a validated Epic/Story/AC document into Jira only after a confirmed preview.     | Must     | Clarified | Product Owner | [F-001](./f-001-validate-preview-commit.md) |
+| F-002      | Dedup on Re-Run              | Re-running an import updates matched Jira issues in place instead of duplicating them. | Must     | Clarified | Product Owner | [F-002](./f-002-dedup-on-rerun.md)          |
+| F-003      | CLI (dwire) Interactive Flow | Gives Maya a guided terminal flow to import, search, and insert work items.            | Must     | Clarified | Product Owner | [F-003](./f-003-cli-dwire-flow.md)          |
+| F-004      | MCP Server Tool Surface      | Gives an AI agent the same validate → preview → confirm gate as the CLI, via MCP.      | Should   | Clarified | Product Owner | [F-004](./f-004-mcp-tool-surface.md)        |
+| F-005      | Individual Work Item CRUD    | Creates, reads, and updates a single Epic/Story without a full document re-import.     | Should   | Clarified | Product Owner | [F-005](./f-005-work-item-crud.md)          |
+| F-006      | MCP Work-Context Query       | Lets an agent ask what's ready to work / in progress before acting with the LLM.       | Should   | Clarified | Product Owner | [F-006](./f-006-mcp-work-context-query.md)  |
+| F-007      | Progress Reporting           | Reports comments, status transitions, and PR references through the same confirm gate. | Should   | Clarified | Product Owner | [F-007](./f-007-progress-reporting.md)      |
+| F-008      | Provider Authentication & Configuration | Lets dwire/the MCP server authenticate to Jira and target a configured project.  | Must     | Clarified | Product Owner | [F-008](./f-008-provider-auth-configuration.md) |
+| F-009      | Packaging & Distribution     | Ships DevWorkWire as an installable, versioned PyPI/pipx/Homebrew package.             | Must     | Clarified | Product Owner | [F-009](./f-009-packaging-distribution.md)  |
 
 ---
 
@@ -41,9 +43,16 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ### Current Feature Status
 
-F-001 through F-007 are documented and currently in **Draft** status. Next step: review
-each feature's Functional/Non-Functional Requirements and Dependencies and Risks
-sections, then advance to **Review Pending** once open items are resolved.
+F-001 through F-009 are **Clarified**: every functional requirement has testable
+acceptance criteria, each feature's Open Questions are resolved, and dependencies
+between features are identified. F-008 (Provider Authentication & Configuration) is a
+foundational dependency for every other feature. Next step: implementation team
+technical-feasibility review to advance to **Ready for Implementation**.
+
+Three cross-cutting NFRs in the [Quality Baseline](#cross-cutting-quality-baseline)
+below (`NFR-X04` Performance, `NFR-X05` Scalability, `NFR-X07` Delivery Feasibility)
+remain **Draft** — their targets are still `TBD` and not yet measurable, so they don't
+qualify as Clarified until a concrete target is set.
 
 **Transition Path**: Draft → Review Pending → Clarified → Ready for Implementation
 
@@ -55,13 +64,13 @@ sections, then advance to **Review Pending** once open items are resolved.
 
 | ID      | Quality Area         | Requirement                                                          | Metric / Target                                                                 | Priority | Owner (DRI)   | Status |
 | ------- | -------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | ------------- | ------ |
-| NFR-X01 | Security             | [Security requirement, e.g. adherence to a known security baseline.] | [Measurable target, e.g. checklist satisfied, hashing and rate limiting rules.] | Must     | Tech Lead     | Draft  |
-| NFR-X02 | Privacy              | [Privacy requirement, e.g. deletion and archival support.]           | [Measurable target, e.g. deletion SLA.]                                         | Must     | Tech Lead     | Draft  |
-| NFR-X03 | Testability          | [Test coverage requirement for core logic.]                          | [Coverage threshold, e.g. 70% of core application logic.]                       | Must     | Backend Lead  | Draft  |
-| NFR-X04 | Performance          | [Responsiveness requirement under expected load.]                    | [Load definition + latency target.]                                             | Should   | Tech Lead     | Draft  |
-| NFR-X05 | Scalability          | [Capacity requirement without data loss or degradation.]             | [Concrete capacity numbers.]                                                    | Should   | Tech Lead     | Draft  |
-| NFR-X06 | Accessibility        | [Accessibility standard for primary workflows.]                      | [Standard, e.g. WCAG 2.1 AA for contrast, keyboard, screen readers.]            | Should   | UI/UX Lead    | Draft  |
-| NFR-X07 | Delivery Feasibility | [Scope must remain deliverable in the planned schedule.]             | [Delivery window.]                                                              | Should   | Product Owner | Draft  |
+| NFR-X01 | Security             | Credentials/tokens are never stored or logged in plaintext (see [F-008](./f-008-provider-auth-configuration.md)); dependencies are scanned for known vulnerabilities; write paths align with OWASP Top 10 practices relevant to a CLI/MCP tool. | Zero plaintext secrets in config files/logs, verified by review; dependency vulnerability scan runs in CI with no unresolved Critical/High findings. | Must     | Tech Lead     | Clarified |
+| NFR-X02 | Privacy              | DevWorkWire stores no personal data beyond what it reads from/writes to the configured Jira instance; local config/cache holds no PII beyond connection settings. | No PII fields persisted in local DevWorkWire storage beyond the config covered by [F-008](./f-008-provider-auth-configuration.md), verified by code review. | Must     | Tech Lead     | Clarified |
+| NFR-X03 | Testability          | Core application logic (`WorkItemService`, provider adapters) is covered by automated tests. | ≥80% line coverage on `WorkItemService` and provider adapter modules, measured in CI. | Must     | Tech Lead     | Clarified |
+| NFR-X04 | Performance          | Interactive CLI/MCP operations (preview, query) remain responsive for typical document/backlog sizes. | TBD — no fixed latency target yet; to be set once representative document/backlog sizes are known. | Should   | Tech Lead     | Draft  |
+| NFR-X05 | Scalability          | Backlog volume stays within what a single Jira project can hold, per the single-project-per-config scope in [F-008](./f-008-provider-auth-configuration.md). | TBD — no fixed capacity number; scope is bounded by single-project use. Revisit if multi-project support is added. | Should   | Tech Lead     | Draft  |
+| NFR-X06 | Accessibility        | Not applicable as a GUI standard — `dwire` is a terminal CLI with no graphical interface. Terminal output avoids color-only signaling of state. | CLI errors/warnings are prefixed with text (not signaled by color alone), verified by manual review. | Should   | Tech Lead     | Clarified |
+| NFR-X07 | Delivery Feasibility | Scope must remain deliverable in the planned schedule.               | TBD — no committed delivery window yet.                                        | Should   | Product Owner | Draft  |
 
 ---
 

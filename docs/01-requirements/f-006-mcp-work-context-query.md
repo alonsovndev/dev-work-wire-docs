@@ -4,8 +4,8 @@
 | ----------------- | --------------------------- |
 | **Project**      | DevWorkWire                 |
 | **Version**      | 0.1                         |
-| **Status**       | Draft                       |
-| **Readiness**    | Draft                       |
+| **Status**       | Clarified                       |
+| **Readiness**    | Clarified                       |
 | **Owner**        | Product Owner               |
 
 ## Context
@@ -23,15 +23,15 @@ None currently blocking this feature.
 
 | ID        | Requirement                                                                                          | Source                                              | Priority | Owner (DRI)   | Acceptance Criteria                                                                                                                        | Status |
 | --------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | -------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| FR-006-01 | The system exposes an MCP tool that returns work items filtered by native status category (To Do / In Progress / Done). | User clarification (F-006 query states)                | Must     | Product Owner | Given a status-category filter, the tool returns only work items currently in that category.                                                    | Draft  |
-| FR-006-02 | The system supports filtering the same query by assignee.                                              | User clarification (F-006 assignee filter)             | Must     | Product Owner | Given an assignee filter (e.g. "assigned to me"), the tool returns only work items assigned to that user, combinable with the status filter.     | Draft  |
-| FR-006-03 | The system returns enough per-item context (title, Acceptance Criteria, parent Epic, status) for the calling agent to act without a follow-up call. | [Overview](../00-context/overview.md#core-concept)     | Must     | Product Owner | Given a query result, each returned item includes title, Acceptance Criteria, parent Epic reference, and status without requiring a second call. | Draft  |
+| FR-006-01 | The system exposes an MCP tool that returns work items filtered by native status category (To Do / In Progress / Done). | User clarification (F-006 query states)                | Must     | Product Owner | Given a status-category filter, the tool returns only work items currently in that category.                                                    | Clarified  |
+| FR-006-02 | The system supports filtering the same query by assignee.                                              | User clarification (F-006 assignee filter)             | Must     | Product Owner | Given an assignee filter (e.g. "assigned to me"), the tool returns only work items assigned to that user, combinable with the status filter.     | Clarified  |
+| FR-006-03 | The system returns enough per-item context (title, Acceptance Criteria, parent Epic, status) for the calling agent to act without a follow-up call. | [Overview](../00-context/overview.md#core-concept)     | Must     | Product Owner | Given a query result, each returned item includes title, Acceptance Criteria, parent Epic reference, and status without requiring a second call. | Clarified  |
 
 ## Feature-Scoped Non-Functional Requirements
 
 | ID         | Requirement                                            | Metric / Target                                                                     | Priority | Owner (DRI) | Status |
 | ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- | -------- | ----------- | ------ |
-| NFR-006-01 | The query tool makes zero write calls to Jira.               | Zero Jira write API calls observed during query execution (verified by test/mock).        | Must     | Tech Lead   | Draft  |
+| NFR-006-01 | The query tool makes zero write calls to Jira.               | Zero Jira write API calls observed during query execution (verified by test/mock).        | Must     | Tech Lead   | Clarified  |
 
 ## Dependencies and Risks
 

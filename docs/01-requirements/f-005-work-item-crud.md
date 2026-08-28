@@ -4,8 +4,8 @@
 | ----------------- | --------------------------- |
 | **Project**      | DevWorkWire                 |
 | **Version**      | 0.1                         |
-| **Status**       | Draft                       |
-| **Readiness**    | Draft                       |
+| **Status**       | Clarified                       |
+| **Readiness**    | Clarified                       |
 | **Owner**        | Product Owner               |
 
 ## Context
@@ -23,16 +23,16 @@ None currently blocking this feature.
 
 | ID        | Requirement                                                                                                       | Source                                                | Priority | Owner (DRI)   | Acceptance Criteria                                                                                                                              | Status |
 | --------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| FR-005-01 | The system reads a single work item by its ID or stored reference.                                                   | User clarification (F-005 CRUD scope)                    | Must     | Product Owner | Given a valid work item ID, the system returns that item's current fields (title, AC, parent Epic, status).                                       | Draft  |
-| FR-005-02 | The system creates a single work item, generating a one-item preview via the same preview mechanism as F-001 before requiring confirmation. | User clarification (F-005 confirm gate)                  | Must     | Product Owner | Given valid fields for a new work item, the system shows a one-item preview and creates it in Jira only after explicit confirmation.               | Draft  |
-| FR-005-03 | The system updates a single existing work item, generating a one-item preview via the same preview mechanism as F-001 before requiring confirmation. | User clarification (F-005 confirm gate)                  | Must     | Product Owner | Given a valid work item ID and changed fields, the system shows a one-item preview of the change and applies it only after explicit confirmation.  | Draft  |
-| FR-005-04 | The system rejects any create or update call that does not go through the preview+confirm step.                       | [Overview](../00-context/overview.md#technical-goals)     | Must     | Product Owner | Given a create/update call without a preceding preview+confirmation, the call is rejected and no write reaches Jira.                                | Draft  |
+| FR-005-01 | The system reads a single work item by its ID or stored reference.                                                   | User clarification (F-005 CRUD scope)                    | Must     | Product Owner | Given a valid work item ID, the system returns that item's current fields (title, AC, parent Epic, status).                                       | Clarified  |
+| FR-005-02 | The system creates a single work item, generating a one-item preview via the same preview mechanism as F-001 before requiring confirmation. | User clarification (F-005 confirm gate)                  | Must     | Product Owner | Given valid fields for a new work item, the system shows a one-item preview and creates it in Jira only after explicit confirmation.               | Clarified  |
+| FR-005-03 | The system updates a single existing work item, generating a one-item preview via the same preview mechanism as F-001 before requiring confirmation. | User clarification (F-005 confirm gate)                  | Must     | Product Owner | Given a valid work item ID and changed fields, the system shows a one-item preview of the change and applies it only after explicit confirmation.  | Clarified  |
+| FR-005-04 | The system rejects any create or update call that does not go through the preview+confirm step.                       | [Overview](../00-context/overview.md#technical-goals)     | Must     | Product Owner | Given a create/update call without a preceding preview+confirmation, the call is rejected and no write reaches Jira.                                | Clarified  |
 
 ## Feature-Scoped Non-Functional Requirements
 
 | ID         | Requirement                                                                                       | Metric / Target                                                                                  | Priority | Owner (DRI) | Status |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | -------- | ----------- | ------ |
-| NFR-005-01 | No divergent code path exists between bulk-import preview/confirm (F-001) and single-item preview/confirm. | Both paths call the same `WorkItemService` preview/confirm logic, verified by test.                | Must     | Tech Lead   | Draft  |
+| NFR-005-01 | No divergent code path exists between bulk-import preview/confirm (F-001) and single-item preview/confirm. | Both paths call the same `WorkItemService` preview/confirm logic, verified by test.                | Must     | Tech Lead   | Clarified  |
 
 ## Dependencies and Risks
 

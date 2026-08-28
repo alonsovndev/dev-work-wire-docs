@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Overview
 
 **Tagline**: _"Load an already-defined work structure into your backlog, validated and duplicate-free — by hand or with your AI agent driving."_
@@ -42,7 +46,7 @@ How DevWorkWire addresses those pain points:
 - **Developer directing an AI coding agent**
   - Lets their AI agent (Claude Code, OpenCode, Copilot, etc.) load work items and report progress through DevWorkWire's MCP server, while staying in the loop via the same confirm-before-execute gate the CLI uses — no looser, agent-only code path.
 
-> Link each audience to a full persona in [user-personas.md](./user-personas.md).
+> Link each audience to a full persona in [User Personas](./user-personas.md).
 
 ---
 
@@ -58,10 +62,12 @@ How DevWorkWire addresses those pain points:
 - Hexagonal architecture: a `WorkItemProvider` port so Jira ships first (Phase 1) and Linear/Azure DevOps can be added later (Phase 3) with no changes to the core service, CLI, or MCP tool definitions.
 - One core service (`WorkItemService`) shared by the CLI and the MCP server — no divergent logic between "human mode" and "agent mode".
 - Confirm-before-execute gate on every externally-visible action (comment, transition, import commit) for both front doors.
+- Proper packaging from Phase 1 (`pyproject.toml`, versioning, changelog) as the foundation every later distribution channel builds on.
+- Security-by-design: no bypass path for autonomous agents to skip the confirm gate in the open-source core.
 
 ### Business Goals
 
-- [TBD — revisit once there is real usage data; no adoption/community target set yet.]
+- Broad, frictionless distribution: PyPI as the baseline (`pip install devworkwire`), pipx documented as the recommended install path, and a self-maintained Homebrew tap (`alonsovndev/devworkwire`) — lowering the bar to try the tool, ahead of Homebrew core or standalone binaries, which stay deferred until there's real traction.
 
 ---
 
@@ -75,4 +81,3 @@ How DevWorkWire addresses those pain points:
 ---
 
 **Last Updated**: 2026-08-28
-

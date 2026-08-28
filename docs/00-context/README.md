@@ -3,7 +3,7 @@
 | Attribute   | Value         |
 | ----------- | ------------- |
 | **Project** | DevWorkWire   |
-| **Status**  | Draft         |
+| **Status**  | Clarified     |
 | **Owner**   | Product Owner |
 
 ## Overview

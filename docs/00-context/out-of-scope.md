@@ -1,10 +1,14 @@
+---
+sidebar_position: 4
+---
+
 # Out of Scope for MVP
 
 | Attribute   | Value             |
 | ----------- | ----------------- |
 | **Project** | DevWorkWire       |
 | **Version** | 0.1               |
-| **Status**  | Draft             |
+| **Status**  | Clarified         |
 | **Owner**   | Product Owner     |
 
 ## Purpose

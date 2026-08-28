@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Glossary
 
 This document defines key terms used throughout the requirements and architecture documentation. Keep it current: whenever a new domain term appears in any document, add it here first.
@@ -55,6 +59,4 @@ The classification of an action as either read-only (show/search/list — fully 
 
 ---
 
-**Version**: 0.1
 **Last Updated**: 2026-08-28
-**Owner**: Product Owner

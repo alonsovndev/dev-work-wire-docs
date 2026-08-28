@@ -1,8 +1,10 @@
+---
+sidebar_position: 2
+---
+
 # User Personas
 
 **Purpose:** Define core user personas aligned to the DevWorkWire overview to ensure requirements and workflows serve the target audiences.
-
-> Create one persona per distinct stakeholder type identified in [overview.md](./overview.md) (typically 2–4). Use the template block below for each persona. Base personas on real research or interviews where possible; otherwise mark assumptions explicitly.
 
 > **Note:** the names, experience levels, and quotes below are illustrative — DevWorkWire has not yet run persona research or interviews. Treat the roles and goals as grounded in the product plan, and the rest as assumptions to validate later.
 

@@ -1,0 +1,30 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left page -->
+  <path
+    d="M100 40 L30 50 L30 155 L100 145 Z"
+    fill="#1e6091"
+    opacity="0.9"
+  />
+  <!-- Right page -->
+  <path
+    d="M100 40 L170 50 L170 155 L100 145 Z"
+    fill="#2771a0"
+    opacity="0.9"
+  />
+  <!-- Spine highlight -->
+  <line
+    x1="100" y1="40"
+    x2="100" y2="145"
+    stroke="#144365"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+  <!-- Left page lines -->
+  <line x1="45" y1="70" x2="90" y2="65" stroke="#fff" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <line x1="45" y1="85" x2="90" y2="80" stroke="#fff" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <line x1="45" y1="100" x2="90" y2="95" stroke="#fff" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <!-- Right page lines -->
+  <line x1="110" y1="65" x2="155" y2="70" stroke="#fff" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <line x1="110" y1="80" x2="155" y2="85" stroke="#fff" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <line x1="110" y1="95" x2="155" y2="100" stroke="#fff" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+</svg>

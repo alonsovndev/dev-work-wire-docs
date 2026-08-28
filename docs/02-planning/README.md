@@ -17,8 +17,8 @@ Single source of truth for project planning, including the phased roadmap, role 
 
 | Document       | Description                                                                               | Status | Owner         | Details                                  |
 | -------------- | ----------------------------------------------------------------------------------------- | ------ | ------------- | ---------------------------------------- |
-| Phased Roadmap | Defines project phases, goals, deliverables, and timelines from pre-MVP to future phases. | Draft  | Product Owner | [phased-roadmap.md](./phased-roadmap.md) |
 | Role Mapping   | Maps roles and responsibilities to workstreams, phases, and specific requirements.        | Draft  | Product Owner | [role-mapping.md](./role-mapping.md)     |
+| Phased Roadmap | Defines project phases, goals, deliverables, and timelines from pre-MVP to future phases. | Draft  | Product Owner | [phased-roadmap.md](./phased-roadmap.md) |
 
 ---
 

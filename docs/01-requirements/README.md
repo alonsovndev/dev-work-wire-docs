@@ -24,6 +24,9 @@ Detailed requirements are maintained in dedicated feature files — copy
 | F-002      | Dedup on Re-Run              | Re-running an import updates matched Jira issues in place instead of duplicating them. | Must     | Draft  | Product Owner | [F-002](./f-002-dedup-on-rerun.md)          |
 | F-003      | CLI (dwire) Interactive Flow | Gives Maya a guided terminal flow to import, search, and insert work items.            | Must     | Draft  | Product Owner | [F-003](./f-003-cli-dwire-flow.md)          |
 | F-004      | MCP Server Tool Surface      | Gives an AI agent the same validate → preview → confirm gate as the CLI, via MCP.      | Should   | Draft  | Product Owner | [F-004](./f-004-mcp-tool-surface.md)        |
+| F-005      | Individual Work Item CRUD    | Creates, reads, and updates a single Epic/Story without a full document re-import.     | Should   | Draft  | Product Owner | [F-005](./f-005-work-item-crud.md)          |
+| F-006      | MCP Work-Context Query       | Lets an agent ask what's ready to work / in progress before acting with the LLM.       | Should   | Draft  | Product Owner | [F-006](./f-006-mcp-work-context-query.md)  |
+| F-007      | Progress Reporting           | Reports comments, status transitions, and PR references through the same confirm gate. | Should   | Draft  | Product Owner | [F-007](./f-007-progress-reporting.md)      |
 
 ---
 
@@ -38,7 +41,7 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ### Current Feature Status
 
-F-001 through F-004 are documented and currently in **Draft** status. Next step: review
+F-001 through F-007 are documented and currently in **Draft** status. Next step: review
 each feature's Functional/Non-Functional Requirements and Dependencies and Risks
 sections, then advance to **Review Pending** once open items are resolved.
 

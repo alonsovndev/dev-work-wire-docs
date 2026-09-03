@@ -293,13 +293,13 @@
 
 - API specification file (OpenAPI/Swagger or equivalent).
 - API documentation generation setup (Swagger UI, ReDoc, or equivalent).
-- Baseline endpoint contracts linking to [API Contract](../../docs/03-architecture/api/api-contract.md).
+- Baseline endpoint contracts linking to [Interface Contract](../../docs/03-architecture/interfaces/interface-contract.md).
 - Documentation generation in CI/CD pipeline.
 - README section on accessing and updating API documentation.
 
 **Dependencies**:
 
-- [API Contract](../../docs/03-architecture/api/api-contract.md).
+- [Interface Contract](../../docs/03-architecture/interfaces/interface-contract.md).
 - [Technology Stack](../../docs/03-architecture/core/technology-stack.md).
 
 **Success Metrics**:

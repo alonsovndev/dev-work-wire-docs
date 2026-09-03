@@ -37,6 +37,14 @@ const config: Config = {
     locales: ["en"],
   },
 
+  // Renders ```mermaid fences as diagrams. Both keys are required — the flag
+  // alone does nothing without the theme registered.
+  markdown: {
+    mermaid: true,
+  },
+
+  themes: ["@docusaurus/theme-mermaid"],
+
   presets: [
     [
       "classic",
@@ -109,6 +117,9 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+    },
+    mermaid: {
+      theme: { light: "neutral", dark: "dark" },
     },
   } satisfies Preset.ThemeConfig,
 };

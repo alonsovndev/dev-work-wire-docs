@@ -6,11 +6,11 @@ Core architecture documents define the system shape: the solution design, the ar
 
 ## Documents
 
-| Document                                                             | Description                                                |
-| -------------------------------------------------------------------- | ---------------------------------------------------------- |
-| [architecture-solution-design.md](./architecture-solution-design.md) | System context, components, data flow, and trade-offs      |
-| [architecture-styles.md](./architecture-styles.md)                   | Style evaluation, bounded contexts, and evolution strategy |
-| [technology-stack.md](./technology-stack.md)                         | Component-level technology choices                         |
+| Document                                                          | Description                                                |
+| ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| [Architecture Solution Design](./architecture-solution-design.md) | System context, components, data flow, and trade-offs      |
+| [Architecture Styles](./architecture-styles.md)                   | Style evaluation, bounded contexts, and evolution strategy |
+| [Technology Stack](./technology-stack.md)                         | Component-level technology choices                         |
 
 ## Selected Architecture
 

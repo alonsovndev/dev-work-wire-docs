@@ -1,6 +1,6 @@
 ---
 mode: agent
-description: Guided fill-in of docs/03-architecture across core/database/api/security/ops/diagrams — asks up to 10 open questions per subfolder pass (fewer if that's enough), then writes the answers.
+description: Guided fill-in of docs/03-architecture across core/database/interfaces/security/ops/diagrams — asks up to 10 open questions per subfolder pass (fewer if that's enough), then writes the answers.
 ---
 
 # /docs-architecture
@@ -23,7 +23,7 @@ For **each** pass:
 1. **Read** the subfolder's `README.md` and content file(s)
    (`core/architecture-solution-design.md`, `core/architecture-styles.md`,
    `core/technology-stack.md`; `database/database-design.md`;
-   `api/api-contract.md`, `api/api-design-standards.md`;
+   `interfaces/interface-contract.md`, `interfaces/interface-standards.md`;
    `security/security-architecture.md`, `security/threat-model.md`;
    `ops/deployment-architecture.md`, `ops/ci-cd-pipeline.md`,
    `ops/monitoring-observability.md`; `diagrams/sequence-diagrams.md`).

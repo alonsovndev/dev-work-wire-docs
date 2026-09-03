@@ -1,8 +1,12 @@
+---
+sidebar_position: 2
+---
+
 # CI/CD Pipeline Architecture
 
 | Attribute        | Value                       |
 | ---------------- | --------------------------- |
-| **Project**      | [Project Name]              |
+| **Project**      | DevWorkWire                 |
 | **Version**      | 0.1                         |
 | **Status**       | Draft                       |
 
@@ -16,17 +20,25 @@
 - [6. Pipeline Stages](#6-pipeline-stages)
 - [7. Build and Verification Responsibilities](#7-build-and-verification-responsibilities)
 - [8. Hotfix Process](#8-hotfix-process)
-- [9. Deployment Environment Strategy](#9-deployment-environment-strategy)
-- [10. Database Migration Strategy](#10-database-migration-strategy)
+- [9. Environment Strategy](#9-environment-strategy)
+- [10. Local State Store Migration Strategy](#10-local-state-store-migration-strategy)
 - [11. Rollback Strategy](#11-rollback-strategy)
-- [12. Environment Variables and Secrets Management](#12-environment-variables-and-secrets-management)
-- [13. Zero-Downtime Deployment Approach](#13-zero-downtime-deployment-approach)
+- [12. Secrets and Publishing Credentials](#12-secrets-and-publishing-credentials)
+- [13. Release Safety Instead of Zero-Downtime](#13-release-safety-instead-of-zero-downtime)
 - [14. Deployment Impact Summary](#14-deployment-impact-summary)
 - [Source References](#source-references)
 
+> **Scope note.** The pipeline **publishes**; it does not deploy. There are no servers to
+> roll, no traffic to shift, no health checks to wait on, and no zero-downtime concern —
+> see [Deployment Architecture](./deployment-architecture.md). Sections 9–13 are reframed
+> accordingly rather than filled with hosted-deployment mechanics this project does not
+> have.
+
 ## 1. Branching Strategy
 
-The project uses a **two-branch model** (`dev` + `main`) with fork-based contributions. All contributors — core team and external — work from forks and submit pull requests to the upstream repository.
+The project uses a **two-branch model** (`dev` + `main`) with fork-based contributions. All
+contributors — core team and external — work from forks and submit pull requests to the
+upstream repository.
 
 ```
 feature/<desc>  fix/<desc>  docs/<desc>    ← created from dev in your fork
@@ -34,37 +46,52 @@ feature/<desc>  fix/<desc>  docs/<desc>    ← created from dev in your fork
          ▼
         dev  ───────────────────────────── integration branch (upstream)
          │                                 PR from fork to upstream dev
-         │                                 1 approval + CI pass required
+         │                                 CI must pass
          │
          ▼  (PR dev → main)
-        main ───────────────────────────── production branch (upstream)
+        main ───────────────────────────── release branch (upstream)
          │                                 PR from upstream dev to main
-         │                                 2 approvals + CI pass required
-         │                                 merge builds candidate (no deploy)
+         │                                 CI must pass
+         │                                 merge freezes a release candidate
          │
          ▼  (tag vX.Y.Z on main)
-    Production ─────────────────────────── tag triggers deploy pipeline
+    Published ──────────────────────────── tag triggers the publish pipeline
+                                           TestPyPI → smoke test → PyPI → tap
 ```
 
-**Permanent branches in the upstream org repo:** `dev`, `main`
+**Permanent branches in the upstream repo (`alonsovndev/devworkwire`):** `dev`, `main`
 
-- **`dev`**: Integration branch. All feature, fix, docs, refactor, test, and chore PRs target `dev`. This is where changes converge and are tested together before promotion to production.
-- **`main`**: Production branch. Only receives merges from `dev` (via release PR) or `hotfix/*` branches. A merge to `main` builds and freezes a production candidate but does **not** deploy. Deployment is triggered by tagging a semantic version (`vX.Y.Z`) on `main`.
+- **`dev`**: Integration branch. All feature, fix, docs, refactor, test, and chore PRs
+  target `dev`.
+- **`main`**: Release branch. Only receives merges from `dev` (via release PR) or
+  `hotfix/*` branches. A merge to `main` freezes a release candidate but publishes
+  nothing. **Publication is triggered by tagging a semantic version (`vX.Y.Z`) on `main`.**
 
-No direct commits to `dev` or `main`. All changes arrive via pull request from a contributor's fork.
+No direct commits to `dev` or `main`. All changes arrive via pull request.
 
 ### Branch Protection Rules
 
-| Rule                    | `dev`                                       | `main`                                                      |
-| ----------------------- | ------------------------------------------- | ----------------------------------------------------------- |
-| Direct pushes           | Blocked                                     | Blocked                                                     |
-| PR required             | All changes via PR                          | All changes via PR from `dev` or hotfix                     |
-| Required approvals      | 1 (when team > 1)                           | 2                                                           |
-| Status checks           | Must pass (lint, test, type-check, docs)    | Must pass (lint, test, type-check, docs, infra plan)        |
-| Up-to-date before merge | Required                                    | Required                                                    |
-| Conversation resolution | Required                                    | Required                                                    |
-| Stale reviews           | Dismissed on new commits                    | Dismissed on new commits                                    |
-| Force pushes            | Blocked                                     | Blocked                                                     |
+| Rule                    | `dev`                                    | `main`                                             |
+| ----------------------- | ---------------------------------------- | -------------------------------------------------- |
+| Direct pushes           | Blocked                                  | Blocked                                            |
+| PR required             | All changes via PR                       | All changes via PR from `dev` or hotfix            |
+| Required approvals      | **0** (see note)                         | **0** (see note)                                   |
+| Status checks           | Must pass (lint, type-check, test, build, audit) | Must pass (lint, type-check, test, build, audit, packaging) |
+| Up-to-date before merge | Required                                 | Required                                           |
+| Conversation resolution | Required                                 | Required                                           |
+| Stale reviews           | Dismissed on new commits                 | Dismissed on new commits                           |
+| Force pushes            | Blocked                                  | Blocked                                            |
+| Tag protection          | —                                        | `v*` tags restricted to maintainers                |
+
+> **Note on approvals.** DevWorkWire currently has **one part-time maintainer**
+> ([Role Mapping](../../02-planning/role-mapping.md)). Requiring approvals would either
+> block all work or be routinely bypassed with an admin override — and a protection rule
+> that is habitually overridden teaches the habit of overriding it. So the gate is
+> **automated rather than social**: PRs are still mandatory, force pushes are still
+> blocked, and **CI must pass to merge**.
+>
+> **When a second maintainer joins**, raise this to 1 approval into `dev` and 2 into
+> `main`, and disallow self-approval. That is the target state, not the current one.
 
 ---
 
@@ -75,15 +102,19 @@ No direct commits to `dev` or `main`. All changes arrive via pull request from a
 Fork the upstream repository on GitHub, then:
 
 ```bash
-git clone git@github.com:<your-handle>/<project-slug>.git
-cd <project-slug>
-git remote add upstream git@github.com:<org>/<project-slug>.git
+git clone git@github.com:<your-handle>/devworkwire.git
+cd devworkwire
+git remote add upstream git@github.com:alonsovndev/devworkwire.git
 git remote -v
-# origin    git@github.com:<your-handle>/<project-slug>.git (fetch/push)
-# upstream  git@github.com:<org>/<project-slug>.git (fetch/push)
+# origin    git@github.com:<your-handle>/devworkwire.git (fetch/push)
+# upstream  git@github.com:alonsovndev/devworkwire.git (fetch/push)
 ```
 
-`origin` is your fork. `upstream` is the org repo. You push to `origin` and open PRs targeting `upstream`.
+`origin` is your fork. `upstream` is the project repo. You push to `origin` and open PRs
+targeting `upstream`.
+
+> The maintainer may branch directly in the upstream repo rather than through a fork; the
+> PR requirement and CI gate apply identically either way.
 
 ### Keeping Your Fork in Sync
 
@@ -125,7 +156,8 @@ git config --global --edit
 | `git resync`      | Fetches `upstream`, resets your current branch to exactly match `upstream/<current-branch>`, then force-pushes with `--force-with-lease`. Use to make your fork's `dev` or `main` match upstream exactly.        |
 | `git feat <name>` | Checks out `dev`, runs `git resync` so local and fork `dev` match `upstream/dev`, then creates the named feature branch from the refreshed `dev`.                                                               |
 
-**Important:** Use `git resync` only on disposable local copies of shared branches (`dev` or `main`). Do not run it on a feature branch that contains unmerged work.
+**Important:** Use `git resync` only on disposable local copies of shared branches (`dev`
+or `main`). Do not run it on a feature branch that contains unmerged work.
 
 ---
 
@@ -133,32 +165,30 @@ git config --global --edit
 
 All work branches are created from `dev` (except hotfixes, which branch from `main`):
 
-| Branch type   | Pattern                       | Example                      | Targets |
-| ------------- | ----------------------------- | ---------------------------- | ------- |
-| Feature       | `feature/<short-description>` | `feature/user-profile-page`  | `dev`   |
-| Bug fix       | `fix/<issue-description>`     | `fix/login-redirect-loop`    | `dev`   |
-| Documentation | `docs/<topic>`                | `docs/update-readme`         | `dev`   |
-| Refactoring   | `refactor/<component>`        | `refactor/auth-service`      | `dev`   |
-| Tests         | `test/<scope>`                | `test/auth-endpoints`        | `dev`   |
-| Chores        | `chore/<task>`                | `chore/update-dependencies`  | `dev`   |
-| Hotfix        | `hotfix/<description>`        | `hotfix/fix-login-regression`| `main`  |
+| Branch type   | Pattern                       | Example                          | Targets |
+| ------------- | ----------------------------- | -------------------------------- | ------- |
+| Feature       | `feature/<short-description>` | `feature/jira-provider-adapter`  | `dev`   |
+| Bug fix       | `fix/<issue-description>`     | `fix/drift-hash-line-endings`    | `dev`   |
+| Documentation | `docs/<topic>`                | `docs/update-readme`             | `dev`   |
+| Refactoring   | `refactor/<component>`        | `refactor/work-item-service`     | `dev`   |
+| Tests         | `test/<scope>`                | `test/confirm-gate-regressions`  | `dev`   |
+| Chores        | `chore/<task>`                | `chore/update-dependencies`      | `dev`   |
+| Hotfix        | `hotfix/<description>`        | `hotfix/token-leak-in-debug-log` | `main`  |
 
 ---
 
 ## 4. PR Conventions
 
-All pull requests follow these conventions:
-
-| Field              | Rule                                                                            |
-| ------------------ | ------------------------------------------------------------------------------- |
-| Title              | Short description in imperative mood (e.g., `add pipeline audit endpoint`)      |
-| Target branch      | `dev` for features, fixes, docs, refactors, tests, chores; `main` for hotfixes  |
-| Merge strategy     | Standard merge commit — preserves full feature branch history                    |
-| Required approvals | 1 for PRs targeting `dev`; 2 for PRs targeting `main`                           |
-| Self-approval      | Not allowed                                                                     |
-| CI gate            | All status checks must pass (lint, test, type-check, docs)                      |
-| Unresolved threads | Must be resolved before merge                                                   |
-| Up-to-date         | Branch must be current with target before merge                                 |
+| Field              | Rule                                                                       |
+| ------------------ | -------------------------------------------------------------------------- |
+| Title              | Short description in imperative mood (e.g., `add jira provider adapter`)   |
+| Target branch      | `dev` for features, fixes, docs, refactors, tests, chores; `main` for hotfixes |
+| Merge strategy     | Standard merge commit — preserves full feature branch history               |
+| Required approvals | 0 while single-maintainer; 1 into `dev` / 2 into `main` once a second maintainer joins |
+| CI gate            | **All status checks must pass** — this is the enforcing gate               |
+| Unresolved threads | Must be resolved before merge                                              |
+| Up-to-date         | Branch must be current with target before merge                            |
+| Security-relevant changes | Any change touching the confirm gate, token handling, or the release workflow states so in the PR description and names the covering test |
 
 ### Feature PR Flow (target: `dev`)
 
@@ -179,23 +209,29 @@ git commit -m "feat(scope): add feature description"
 git push -u origin feature/<description>
 
 # 5. Open PR on GitHub:
-#    From: <your-handle>/<project-slug>:feature/<description>
-#    Into: <org>/<project-slug>:dev
+#    From: <your-handle>/devworkwire:feature/<description>
+#    Into: alonsovndev/devworkwire:dev
 ```
 
-CI runs checks on the PR. After 1 approval and all checks passing, merge via standard merge commit. Delete the fork branch after merge.
+CI runs checks on the PR. Once all checks pass, merge via standard merge commit. Delete the
+branch after merge.
 
 ### Release PR Flow (dev → main)
 
 ```bash
 # Open a PR from upstream dev into upstream main
-# Requires 2 approvals and all CI checks passing
-# Merge builds and freezes a production candidate — does NOT deploy
+# All CI checks must pass, including the packaging check
+# Merge freezes a release candidate — it does NOT publish
 ```
 
-### Releasing to Production
+Even with no second reviewer, **read the full `dev` → `main` diff before merging**. It is
+the last checkpoint before a version can be tagged, and publication cannot be undone for
+already-installed copies.
 
-Once the candidate is signed off, tag the release from upstream `main`:
+### Releasing
+
+Once the candidate is ready, bump the version, update the changelog, then tag from upstream
+`main`:
 
 ```bash
 git fetch upstream
@@ -205,19 +241,32 @@ git tag v1.0.0
 git push upstream v1.0.0
 ```
 
-The tag (`vX.Y.Z`) triggers the production deployment pipeline.
+The tag (`vX.Y.Z`) triggers the publish pipeline. CI **fails the release** if the tag does
+not match the version in `pyproject.toml`, or if `CHANGELOG.md` has no entry for it.
 
 ### Release Versioning
 
-The project uses semantic versioning (`vMAJOR.MINOR.PATCH`):
+The project uses semantic versioning (`vMAJOR.MINOR.PATCH`)
+([FR-009-04](../../01-requirements/f-009-packaging-distribution.md)). For DevWorkWire the
+"public API" is the **MCP tool surface and the CLI command surface** — see
+[Interface Design Standards](../interfaces/interface-standards.md#versioning-strategy) for the full
+rules.
 
-| Segment | Increment when                                   |
-| ------- | ------------------------------------------------ |
-| `MAJOR` | Breaking change to a public API or data contract |
-| `MINOR` | New feature, backwards-compatible                |
-| `PATCH` | Bug fix, backwards-compatible                    |
+| Segment | Increment when                                                                 |
+| ------- | ------------------------------------------------------------------------------ |
+| `MAJOR` | Renaming/removing an MCP tool or argument, changing an argument's type or meaning, removing a result field, changing a CLI exit code's meaning, or changing what an error code means |
+| `MINOR` | New tool, new optional argument, new result field, new CLI command or flag, new error code, **or any tightening of a gate** |
+| `PATCH` | Bug fix, backwards-compatible                                                  |
 
-Hotfixes increment `PATCH` (e.g., `v1.0.0` → `v1.0.1`). New features shipped via the normal `dev` → `main` cycle increment `MINOR` (e.g., `v1.0.1` → `v1.1.0`).
+Adding or tightening a gate is deliberately **never** treated as a breaking change worth
+avoiding.
+
+**Version and changelog are maintained by hand, and verified by CI.** The version is bumped
+in `pyproject.toml` and the entry written in `CHANGELOG.md` following Keep a Changelog
+conventions; the release workflow refuses to publish if either is missing or inconsistent
+with the tag. Hand-written entries keep the changelog useful to a reader deciding whether
+to upgrade — which is its actual job, and the reason it is not generated from commit
+messages.
 
 ### Commit Conventions
 
@@ -237,58 +286,145 @@ All commits follow **Conventional Commits** (`<type>(<scope>): <description>`):
 
 Examples:
 
-- `feat(auth): add JWT refresh token rotation`
-- `fix(ui): resolve modal close button alignment`
-- `docs(adr): add code quality tooling strategy`
-- `refactor(api): extract validation logic to shared module`
+- `feat(mcp): add workitem.query tool`
+- `fix(jira): preserve epic link on story update`
+- `docs(adr): add local state store decision`
+- `refactor(import): extract drift detection from preview builder`
 
-**Enforcement:** PR titles are validated via CI. No local commit hooks are enforced — this reduces developer friction during rapid iteration. CONTRIBUTING.md documents the format with examples for new contributors.
+**Enforcement:** PR titles are validated via CI. No local commit hooks are enforced — this
+reduces developer friction during rapid iteration. `CONTRIBUTING.md` documents the format
+with examples for new contributors.
 
 ---
 
 ## 5. CI/CD Tool Selection
 
-**Selected:** [Tool — e.g. GitHub Actions, GitLab CI, CircleCI]
-**Rationale:** [Why this tool fits the project — native integration, environment protection, Terraform support, etc.]
+**Selected:** GitHub Actions.
+
+**Rationale:** the repository is on GitHub, and three decisions already made depend on it —
+**PyPI Trusted Publishing** requires an OIDC identity provider that Actions provides
+natively (removing the long-lived PyPI token that is the usual package-hijacking target),
+and **Dependabot** and **CodeQL** are GitHub-native
+([Security Architecture](../security/security-architecture.md#supply-chain-security)).
+It is free for public repositories, so the CI budget constraint is maintainer attention
+rather than money. Adopting a different runner would mean giving up Trusted Publishing —
+a security regression that no CI feature would justify.
+
+**Runners:** GitHub-hosted `ubuntu-latest` and `macos-latest`. No self-hosted runners — a
+self-hosted runner executing PRs from forks is a well-known compromise path, and there is
+nothing here that needs one.
 
 ---
 
 ## 6. Pipeline Stages
 
-> Describe the pipeline stages and their triggers. Replace the placeholder below with your actual pipeline diagram (Mermaid or exported image).
+```mermaid
+flowchart TB
+  PR["PR → dev"] --> Q1["lint (ruff)<br/>type-check (mypy)<br/>test matrix (6 jobs)<br/>coverage gate<br/>pip-audit · CodeQL<br/>architecture guard"]
+  Q1 --> M1["merge to dev"]
 
+  RPR["Release PR: dev → main"] --> Q2["all of the above<br/>+ build sdist & wheel<br/>+ clean-install check<br/>+ version/changelog check"]
+  Q2 --> M2["merge to main<br/>(candidate frozen)"]
+
+  TAG["Tag vX.Y.Z on main"] --> B["build sdist + wheel"]
+  B --> V["verify tag == pyproject version<br/>verify CHANGELOG entry exists"]
+  V --> TP["publish to TestPyPI"]
+  TP --> S["clean-env install<br/>+ dwire --version smoke test"]
+  S -->|"pass"| P["publish to PyPI<br/>(Trusted Publishing + attestations)"]
+  S -->|"fail"| X["stop — nothing reaches PyPI"]
+  P --> H["update Homebrew tap<br/>(pinned sdist hash)"]
+  P --> R["create GitHub Release<br/>from changelog entry"]
 ```
-PR (fork → dev)          ─── lint + test + typecheck + build
-Release PR (dev → main)  ─── lint + test + typecheck + build + infra plan
-Tag (vX.Y.Z on main)     ─── migrate + deploy + smoke test + release tag
-```
+
+The TestPyPI stage is the one that earns its place: it is what actually enforces
+[NFR-009-01](../../01-requirements/f-009-packaging-distribution.md) — a clean install with
+no manual dependency fixes — **before** the artifact can reach users. A PyPI version number
+can never be reused, so a failure caught here costs a re-tag; the same failure caught after
+publication costs a yank and a version bump.
+
+---
 
 ## 7. Build and Verification Responsibilities
 
-- **Feature PR Pipeline (target: `dev`):** Triggered on every PR from a fork targeting upstream `dev`.
-  - Runs all documentation checks, code quality scans, and unit/integration tests.
-  - Builds the application artifacts to ensure validity.
-  - Runs infrastructure plan to preview changes.
-  - **No deployment occurs from this pipeline.**
+### Feature PR Pipeline (target: `dev`)
 
-- **Release PR Pipeline (target: `main`):** Triggered on a PR from upstream `dev` to upstream `main`.
-  - This is a governance step. It re-runs critical tests and builds production artifacts.
-  - Requires 2 approvals before merging.
-  - **Merge builds and freezes a candidate — does NOT deploy.**
+Triggered on every PR targeting `dev`. **Publishes nothing.**
 
-- **Production Deployment Pipeline (trigger: tag `vX.Y.Z` on `main`):**
-  - Promotes the already-built candidate — no rebuild.
-  - Applies any pending infrastructure changes.
-  - Runs database migrations.
-  - Deploys the candidate to production.
-  - Runs automated smoke tests.
-  - Tags the release in the observability platform.
+| Check | Tool | Failure policy |
+| ----- | ---- | -------------- |
+| Lint + format | `ruff check`, `ruff format --check` | Blocking |
+| Security lint | Ruff `S` (bandit-derived) ruleset | Blocking |
+| Type check | `mypy` (strict on `core/` and `features/`) | Blocking |
+| Tests | `pytest` on the matrix below | Blocking |
+| Coverage | `pytest-cov` — **≥80% on `WorkItemService` and provider adapters** ([NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline)) | Blocking |
+| Dependency audit | `pip-audit` — **fails on Critical/High** ([NFR-X01](../../01-requirements/README.md#cross-cutting-quality-baseline)) | Blocking |
+| SAST | CodeQL | Blocking |
+| Architecture guard | `presentation/` must not import `infrastructure/`; no slice performs an ungated provider write; Pydantic not imported by `core/` or `features/` ([Architecture Styles](../core/architecture-styles.md)) | Blocking |
+| MCP tool schema snapshot | Generated tool schemas diffed against a committed snapshot | Blocking — an unreviewed contract change must be deliberate ([Interface Design Standards](../interfaces/interface-standards.md#deployment-impact)) |
+| Docs build | Docusaurus build in the docs repo | Blocking |
+
+**Test matrix — 6 jobs:**
+
+| OS | Python |
+| -- | ------ |
+| `ubuntu-latest` | 3.11, 3.12, 3.13 |
+| `macos-latest` | 3.11, 3.12, 3.13 |
+
+Windows is not tested and not supported — see
+[Deployment Architecture](./deployment-architecture.md#supported-platforms). Testing the
+3.11 floor and the current release catches accidental use of a newer-only feature before
+it ships.
+
+### Security-Critical Tests
+
+These are ordinary `pytest` tests, but they encode the product's core safety properties and
+should be labeled so a future contributor does not weaken one while "simplifying" a test
+suite. Each corresponds to a P1 mitigation in the
+[Threat Model](../security/threat-model.md#p1--critical-must-fix-before-mvp):
+
+- Commit without a preview handle → rejected.
+- Commit without `confirmed: true` → rejected.
+- Commit with an expired or mismatched handle → rejected.
+- Any `*.preview` issues **zero** provider writes.
+- Commit with an unresolved drifted item → rejected.
+- The API token never appears in captured log output at maximum verbosity.
+- The MCP server writes nothing but protocol frames to stdout.
+- A source document containing prompt-injection text yields a normal plan and no
+  privileged behavior.
+
+### Release PR Pipeline (target: `main`)
+
+Everything above, plus:
+
+- Build `sdist` and `wheel` with Hatchling.
+- Install the built wheel into a clean virtual environment and verify the `dwire` entry
+  point resolves.
+- Verify `pyproject.toml` version and `CHANGELOG.md` are consistent and ready to tag.
+
+**Merging freezes a candidate. It publishes nothing.**
+
+### Publish Pipeline (trigger: tag `vX.Y.Z` on `main`)
+
+1. Build `sdist` and `wheel`.
+2. **Verify** the tag matches the `pyproject.toml` version and that `CHANGELOG.md` has an
+   entry for it — fail the release otherwise.
+3. Publish to **TestPyPI**.
+4. **Smoke test:** in a clean container, `pip install` from TestPyPI and run
+   `dwire --version` and `dwire --help`.
+5. On success, publish to **PyPI** via Trusted Publishing (OIDC), with PEP 740 attestations.
+6. Update the **Homebrew tap** formula with the new version and the sdist hash.
+7. Create a **GitHub Release** using the changelog entry.
+
+No step in this pipeline touches a user's machine — publication makes an artifact
+*available*; users choose when to install it.
 
 ---
 
 ## 8. Hotfix Process
 
-Use hotfixes only for critical production bugs that cannot wait for the normal `dev` → `main` cycle. The 2-approval requirement still applies.
+Use hotfixes only for critical bugs that cannot wait for the normal `dev` → `main` cycle —
+in practice, a token leak, a gate bypass, or a defect that creates duplicate or corrupted
+issues in users' trackers.
 
 1. Sync your fork's `main` with upstream, then branch from it:
 
@@ -299,16 +435,18 @@ Use hotfixes only for critical production bugs that cannot wait for the normal `
    git checkout -b hotfix/<description>
    ```
 
-2. Fix, test, push to your fork, and open a PR into upstream `main` (2 approvals).
+2. Fix, **add a regression test that fails without the fix**, push, and open a PR into
+   upstream `main`.
 
-3. After merge and approval, tag the hotfix release from upstream `main`:
+3. After merge, bump the PATCH version, add the changelog entry, and tag from upstream
+   `main`:
 
    ```bash
    git tag v1.0.1
    git push upstream v1.0.1
    ```
 
-   The tag triggers the production deployment pipeline.
+   The tag triggers the publish pipeline.
 
 4. Back-merge into upstream `dev` to keep branches in sync:
 
@@ -320,68 +458,143 @@ Use hotfixes only for critical production bugs that cannot wait for the normal `
    git push upstream dev
    ```
 
-**Recovery:** The default is fix-forward — land another hotfix. Redeploying a prior good image is possible (images are sha-tagged), but fix-forward is the norm.
+5. **For a security fix:** yank the affected version(s) from PyPI, publish a GitHub Security
+   Advisory, and update the tap. Note the hard limit — already-installed copies keep
+   running; yanking only blocks new installs
+   ([Security Architecture](../security/security-architecture.md#incident-response-lifecycle)).
+
+**Recovery is always fix-forward.** There is no redeploy of a prior artifact, because
+nothing is deployed.
 
 ---
 
-## 9. Deployment Environment Strategy
+## 9. Environment Strategy
 
-For the MVP, the strategy is streamlined to two environments:
+There are no hosted environments. The pipeline's "environments" are verification contexts:
 
-- **Local:** Developer workstations running `docker compose`. This is where all development and initial testing occurs.
-- **Production:** The live user-facing environment. It is deployed **only** from the `main` branch.
+| Environment | Purpose | Triggered by | Notes |
+| ----------- | ------- | ------------ | ----- |
+| Local | Development and testing | Developer | `pip install -e .`; a real Jira project for manual verification |
+| CI | Automated verification | Every PR | Ephemeral runners; Linux + macOS × Python 3.11–3.13 |
+| TestPyPI | Pre-publication gate | Tag on `main` | The only thing resembling staging. Proves clean install before PyPI |
+| PyPI | Public release | Tag, after the gate passes | Irreversible |
+| Homebrew tap | Public release (macOS) | Follows the PyPI publish | Pinned sdist hash |
 
-There is no persistent `staging` or `dev` environment. The `dev` branch provides code-level integration; deployed environments are local (per developer) and production only.
-
-> Adjust this to your project's needs: add a staging environment when the team or release cadence requires it.
+**Integration testing against Jira** needs a real instance, which CI does not have.
+Provider-adapter tests run against recorded/mocked HTTP responses so the suite stays
+network-free and deterministic; live verification against a real Jira project is a manual
+pre-release step. This is a genuine coverage gap — a Jira API change would not be caught by
+CI — and it should be listed as a release-checklist item rather than assumed away.
 
 ---
 
-## 10. Database Migration Strategy
+## 10. Local State Store Migration Strategy
 
-- Migrations are managed via [Alembic / Flyway / Prisma Migrate / —] and are versioned and backward-compatible.
-- In the production pipeline (triggered by tag `vX.Y.Z` on `main`), migrations run as a pre-deploy step.
-- A failed migration fails the deployment pipeline, preventing the application from deploying against an incorrect schema version.
+Replaces the template's server-database migration section. There is no server database and
+no operator: the "DBA" is a developer running `dwire` who does not know the state store
+exists.
+
+- **Migrations run in-process on store open**, not from the pipeline. There is no migration
+  command for a user to run and no deploy step to hook.
+- Versioned, ordered migration steps applied in a single transaction, tracked in
+  `schema_version` ([Database Design](../database/database-design.md)).
+- **Additive-first**: new columns nullable or defaulted; no in-place renames or retypes.
+- A store **newer** than the running binary (after a user downgrades) is refused with a
+  clear message rather than misread.
+- **The rebuild escape hatch:** because the store is a rebuildable cache, a change that
+  would otherwise be breaking may drop and rebuild the index from Jira instead of shipping
+  an elaborate data migration. Use it.
+- **CI must test migrations forward from every released schema version.** A user upgrading
+  from an old version is the normal case — they upgrade on their own schedule, and may skip
+  many versions.
 
 ---
 
 ## 11. Rollback Strategy
 
-- **Application Rollback:** Redeploy the previously successful image. Fix-forward is preferred; redeploy is the emergency fallback.
-- **Database Rollback:** Prefer forward-fix migrations. For emergencies, use point-in-time recovery (PITR) or a committed backup.
-- **Infrastructure Rollback:** Revert the change in the IaC code in the `main` branch and trigger a new deployment.
+| Layer | Strategy |
+| ----- | -------- |
+| **Published release** | **Fix-forward only.** Yank the bad version to block new installs, publish a patched version, update the tap. Already-installed copies keep running — there is no recall |
+| **User-side** | `pipx install devworkwire==<previous>` / `pip install devworkwire==<previous>`. Works only because every release stays on PyPI and the changelog explains what changed |
+| **Local state store** | No down-migrations. The store is rebuildable from Jira, which is the recovery path. A store newer than the binary is refused rather than downgraded |
+| **Repository** | Revert the merge commit on `dev` or `main`, then release a new patch version |
+| **Homebrew tap** | Revert the formula commit to point at the previous pinned version |
+
+A version number is **never reused**. A broken `1.2.0` is followed by `1.2.1`.
 
 ---
 
-## 12. Environment Variables and Secrets Management
+## 12. Secrets and Publishing Credentials
 
-- Secrets for the production environment are stored in [CI platform encrypted secrets] scoped to the production environment.
-- These secrets are injected into the application configuration during the production deployment.
-- No plaintext secrets are ever stored in the repository.
+| Secret | Where | Notes |
+| ------ | ----- | ----- |
+| PyPI publishing | **None exists.** Trusted Publishing via short-lived OIDC from GitHub Actions | Removes the long-lived PyPI API token that is the standard package-hijacking target (T-005, [Threat Model](../security/threat-model.md)) |
+| TestPyPI publishing | Trusted Publishing, same mechanism | |
+| Homebrew tap push | GitHub Actions secret, scoped to the tap repository only | Least-privilege: it can update the formula and nothing else |
+| Jira API token | **Never in CI.** CI runs no live Jira calls | Users supply their own at run time ([FR-008-02](../../01-requirements/f-008-provider-auth-configuration.md)) |
+
+- Publishing workflows run **only** on tag events from `main`, in a GitHub Actions
+  environment restricted to that trigger.
+- No plaintext secret is ever committed. GitHub secret scanning with push protection is
+  enabled.
+- Workflow permissions are minimal by default, with `id-token: write` granted only to the
+  publishing job.
+- Third-party actions are pinned to a commit SHA, not a mutable tag — a moving tag on a
+  third-party action is a supply-chain hole in the pipeline that protects the supply chain.
 
 ---
 
-## 13. Zero-Downtime Deployment Approach
+## 13. Release Safety Instead of Zero-Downtime
 
-- The application is stateless, allowing the compute platform to perform rolling replacements. Health checks validate new instances before they receive traffic.
-- Database migrations are backward-compatible to ensure the running application remains compatible while the new version is deploying.
+Zero-downtime deployment does not apply: nothing is running to interrupt, and there is no
+rolling replacement or health check
+([Deployment Architecture](./deployment-architecture.md)). The analogous concern for
+distributed software is **release safety** — a bad release cannot be pulled back from
+machines that already have it.
+
+The controls that substitute for a safe rollout:
+
+- **The TestPyPI clean-install gate** — a broken package cannot reach PyPI.
+- **A 6-job matrix** covering both supported OSes and the Python floor through current.
+- **Security-critical gate tests** that must pass before any merge.
+- **Attestations and Trusted Publishing** so the artifact is verifiably built from tagged
+  source.
+- **Backwards-compatible state-store migrations**, tested forward from every released
+  version, so upgrading never strands a user's local state.
+- **A changelog written for a human deciding whether to upgrade**, since that decision is
+  the only rollout control that exists.
 
 ---
 
 ## 14. Deployment Impact Summary
 
-- The architecture supports a controlled release promotion: `dev` → `main` (candidate) → tag `vX.Y.Z` (deploy).
-- Fork-based contributions ensure consistent workflow for all contributors and clean upstream history.
-- Release tagging provides immediate visibility into the impact of a production deployment.
-- The pipeline design separates development integration (`dev`) from production releases (`main`), ensuring stability.
-- Hotfixes bypass `dev` and go directly to `main`, then back-merge to keep branches synchronized.
+- The pipeline separates integration (`dev`) from release (`main`), and **publication is
+  triggered only by a tag** — merging never publishes.
+- **The gate is automated, not social.** With one maintainer, CI status checks are the
+  enforcing mechanism; approval counts rise when a second maintainer joins.
+- **Verification is front-loaded because publication is irreversible.** The TestPyPI
+  smoke test exists specifically to satisfy
+  [NFR-009-01](../../01-requirements/f-009-packaging-distribution.md) before users can
+  reach the artifact.
+- **No long-lived publishing credential exists**, which removes the most commonly exploited
+  path to shipping a malicious release.
+- **There is no post-release telemetry**, by design — so a bad release is detected by users
+  reporting it, which is why pre-release gates carry the weight and why `SECURITY.md` and
+  issue reporting must be easy to find.
+- **Live Jira verification remains a manual pre-release step**, and is a known CI coverage
+  gap rather than a solved problem.
 
 ## Source References
 
 - [Deployment Architecture](./deployment-architecture.md)
-- [Feature Requirements](../../01-requirements/README.md)
+- [Monitoring and Observability](./monitoring-observability.md)
+- [Security Architecture](../security/security-architecture.md)
+- [Threat Model](../security/threat-model.md)
+- [Interface Design Standards](../interfaces/interface-standards.md)
+- [Database Design](../database/database-design.md)
+- [F-009 Packaging & Distribution](../../01-requirements/f-009-packaging-distribution.md)
 - [ADR Decision Log](../../04-decisions/README.md)
 
 ---
 
-**Last Updated**: YYYY-MM-DD
+**Last Updated**: 2026-09-01

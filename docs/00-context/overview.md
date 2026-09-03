@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ## Core Concept
 
-DevWorkWire is an open-source tool that takes an already-defined, refined structure of work — Epics with their User Stories and Acceptance Criteria — and loads it, validated and reliably, into a project-tracking system (Jira first). It does not interpret free-form or ambiguous text; the structure must already be complete when it arrives (for example, a Markdown document with the Epic → Story → Acceptance Criteria hierarchy already worked out). DevWorkWire's job is to validate that structure, preview exactly what will be written, and apply it without creating duplicates on re-run — usable directly by a developer through the interactive `dwire` CLI, or by an AI agent through DevWorkWire's own MCP server.
+DevWorkWire is an open-source tool that takes an already-defined, refined structure of work — Epics with their User Stories and Acceptance Criteria — and loads it, validated and reliably, into a project-tracking system (Jira first). It does not interpret free-form or ambiguous text; the structure must already be complete when it arrives (for example, a folder holding an `epic.md` and a `stories.md` file with the Epic → Story → Acceptance Criteria hierarchy already worked out). DevWorkWire's job is to validate that structure, preview exactly what will be written, and apply it without creating duplicates on re-run — usable directly by a developer through the interactive `dwire` CLI, or by an AI agent through DevWorkWire's own MCP server.
 
 ### Vision Statement
 
@@ -23,14 +23,14 @@ DevWorkWire becomes the trusted, provider-agnostic bridge between refined planni
 Pain points the target users experience today:
 
 - **Manual copy-paste is slow and error-prone**: turning a refined Epic/Story/AC document into tickets today means hand-creating each item in the project management platform's UI — tedious, inconsistent field usage, and easy to miss a parent/child link or an Acceptance Criterion.
-- **Re-imports create duplicate tickets**: there is no safe way to re-run a load after the source document changes, so teams either avoid updating already-imported work or end up with duplicate Epics and Stories in the backlog.
+- **Re-imports create duplicate tickets**: there is no safe way to re-run a load after the source folder changes, so teams either avoid updating already-imported work or end up with duplicate Epics and Stories in the backlog.
 
 ### The Solution
 
 How DevWorkWire addresses those pain points:
 
 - **Loading engine (validate → preview → confirm)**: DevWorkWire validates the structure's consistency (counts, parent/child links, required fields), shows a clear preview of exactly what will be written, and requires confirmation before it touches the tracker — solving the manual, error-prone copy-paste problem.
-- **Dedup on re-run**: re-running the same source file is treated as an update pass, matched by provider key or a stored import-source reference, so re-imports never create duplicate tickets.
+- **Dedup on re-run**: re-running the same source folder is treated as an update pass, matched by provider key or a stored import-source reference, so re-imports never create duplicate tickets.
 
 ---
 

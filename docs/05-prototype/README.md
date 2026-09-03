@@ -1,30 +1,28 @@
 # Prototype
 
-UI/UX prototype for the project, built in **Pencil** (`.pen` file) with reusable components and design tokens.
+Terminal-session prototype for DevWorkWire's guided CLI flow. DevWorkWire has no GUI —
+it is the `dwire` CLI plus an MCP server with no visual surface of its own — so the
+prototype is a set of illustrative terminal transcripts, not a visual mockup file.
 
 ## Files
 
-| File                  | Purpose                                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------------------- |
-| `README.md`           | This file — directory overview and quick start                                                           |
-| `prototype-brief.md`  | Authoritative source of truth: page definitions, user flows, scope, requirements coverage matrix         |
-| `design-direction.md` | Visual direction, color strategy, typography, component inventory, accessibility, responsive breakpoints |
-| `pen/`                | Place your `.pen` Pencil design file here (not committed to version control if >50 MB)                   |
+| File               | Purpose                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
+| `Prototype Brief`  | Authoritative source of truth: screens (terminal states), user flows, scope, requirements coverage matrix |
+| `Design Direction` | Terminal rendering direction: color/text-prefix conventions, component inventory, accessibility           |
 
-## Opening the Prototype
+## Reading the Prototype
 
-The `.pen` file opens in **Pencil** — a collaborative design tool.
-
-```bash
-# Place your prototype file in the pen/ directory
-open docs/05-prototype/pen/<your-prototype>.pen
-```
-
-Open it from Pencil via **File → Open** and navigate to the path above, or use the Pencil CLI.
+The transcripts live directly in [`prototype-brief.md`](./prototype-brief.md) as fenced
+code blocks under each screen. They're illustrative — they show the state and content a
+Rich-rendered terminal would produce, not a pixel-accurate render.
 
 ## Scope
 
-Define what the prototype covers (e.g. Discovery and Planning workflows only) and what is out of scope (e.g. delivery, sprint, maintenance). This prevents scope creep during the design phase.
+Covers Maya's (primary persona) CLI flows only: the guided `dwire import` flow, search/
+select, and insert-by-id. The MCP tool surface and progress-reporting flows have no
+visual surface of their own and are out of scope for this pass — see
+[Out of Scope](./prototype-brief.md#out-of-scope) in the brief.
 
 ## Source References
 

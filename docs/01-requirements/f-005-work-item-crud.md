@@ -10,7 +10,7 @@
 
 ## Context
 
-- **Problem**: Not every change to a backlog is a full document re-import — Maya (and Idris's agent, via MCP) needs to create, read, or update a single Epic or Story without re-running the whole load.
+- **Problem**: Not every change to a backlog is a full folder re-import — Maya (and Idris's agent, via MCP) needs to create, read, or update a single Epic or Story without re-running the whole load.
 - **Primary Persona**: [Maya, Solo/Small-Team Developer](../00-context/user-personas.md#persona-1-solosmall-team-developer-primary) (secondary: [Idris](../00-context/user-personas.md#persona-2-developer-directing-an-ai-agent-secondary), via MCP)
 - **In Scope**: Create, Read, and Update of a single work item, reusing the exact same preview-then-confirm gate as [F-001](./f-001-validate-preview-commit.md) (a one-item preview, not a lighter variant).
 - **Out of Scope**: Delete (deferred — a destructive action kept out of the MVP risk surface); any path that bypasses the preview+confirm gate.

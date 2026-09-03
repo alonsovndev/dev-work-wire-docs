@@ -49,7 +49,7 @@ requires every state to also carry a text prefix, since color can be unavailable
 | Success                     | Green                | `OK`                 | `OK  DWW-201  Payments  created`                                        |
 | Warning                     | Yellow               | `WARNING`            | `WARNING  Item DWW-140 changed in Jira since last import`               |
 | Error                       | Red                  | `ERROR`              | `ERROR  Story "Add OAuth login" (line 42) has no parent Epic reference` |
-| Neutral / info              | Default              | none required        | `Validating backlog.md ...`                                             |
+| Neutral / info              | Default              | none required        | `Validating data/EPIC-3-payments/ ...`                                  |
 | Selected (interactive list) | Reverse video / bold | `>` marker           | `> DWW-140  Epic  Onboarding  In Progress`                              |
 
 ## Typography Strategy

@@ -42,9 +42,27 @@ Two rules carry the design:
   `WorkItemProvider` (tracker read/write) and `StateStore` (local index, drift baselines,
   idempotency). Jira types never cross inward.
 
-Feature slices (`features/import_`, `features/workitem`, `features/progress`) own their
-entities, use cases, and provider mapping. No slice imports another slice; `presentation/`
-never imports `infrastructure/`. A composition root wires concrete adapters.
+**Slices are internally layered.** Each of `features/import_`, `features/workitem`, and
+`features/progress` owns an `application/` (its use cases) and a `presentation/` (its Typer
+commands and MCP tool schemas). `presentation/cli` and `presentation/mcp` remain as hosts,
+owning the Typer app, the MCP server, and the shared rendering and envelope conventions that
+[NFR-003-01](../01-requirements/f-003-cli-dwire-flow.md) and
+[NFR-X06](../01-requirements/README.md#cross-cutting-quality-baseline) require; the
+composition root registers each slice's fragments into them.
+
+**What deliberately does not get sliced** — the domain model, the ports, the confirm gate,
+and the provider adapter — for three reasons:
+
+- There is **one work-item model**, not three: `import_` creates it, `workitem` updates it,
+  `progress` comments on it. A per-slice `domain/` would duplicate it or sit hollow.
+- There is **one tracker integration**, not three. Keeping Jira knowledge in
+  `infrastructure/external/jira` is what makes the Phase 2 goal one new file per provider
+  rather than three.
+- There is **one confirm gate**. Putting a provider adapter inside a slice would move the
+  ungated-write risk below closer to hand, not further away.
+
+No slice's `application/` imports another slice; no `presentation/` package — host or
+slice-owned — imports `infrastructure/`. A composition root wires concrete adapters.
 
 Full evaluation: [Architecture Styles](../03-architecture/core/architecture-styles.md).
 
@@ -60,6 +78,8 @@ Full evaluation: [Architecture Styles](../03-architecture/core/architecture-styl
   target in [NFR-X03](../01-requirements/README.md#cross-cutting-quality-baseline)
   reachable without network mocking.
 - Feature slices line up with the feature docs, so a requirement change has an obvious home.
+  With slices layered, a change to one feature's behavior *and* its command and tool surface
+  stays inside that one directory.
 - Zero operational footprint: one package, one process, no listener.
 
 ### Negative
@@ -73,6 +93,10 @@ Full evaluation: [Architecture Styles](../03-architecture/core/architecture-styl
   its own ADR.
 - More indirection than a tool this size strictly needs — accepted as the price of the
   Phase 2 goal, paid once in the Phase 0 skeleton.
+- **Presentation is split between hosts and slices**, so the CLI's command set is assembled
+  at the composition root rather than read off one file. *Mitigation:* the hosts own the
+  shared conventions, so "how output looks" and "what errors are prefixed with" still have
+  exactly one home; only "which commands exist" is distributed.
 - Cross-slice features have no natural home. *Mitigation:* promote genuinely shared behavior
   to the kernel rather than letting slices import each other.
 

@@ -4,21 +4,33 @@ sidebar_position: 2
 
 # CI/CD Pipeline Architecture
 
-| Attribute        | Value                       |
-| ---------------- | --------------------------- |
-| **Project**      | DevWorkWire                 |
-| **Version**      | 0.1                         |
-| **Status**       | Draft                       |
+| Attribute   | Value       |
+| ----------- | ----------- |
+| **Project** | DevWorkWire |
+| **Version** | 0.1         |
+| **Status**  | Draft       |
 
 ## Table of Contents
 
 - [1. Branching Strategy](#1-branching-strategy)
-- [2. Fork Setup & Sync](#2-fork-setup--sync)
+  - [Branch Protection Rules](#branch-protection-rules)
+- [2. Fork Setup \& Sync](#2-fork-setup--sync)
+  - [One-time Fork Setup](#one-time-fork-setup)
+  - [Keeping Your Fork in Sync](#keeping-your-fork-in-sync)
 - [3. Branch Naming Conventions](#3-branch-naming-conventions)
 - [4. PR Conventions](#4-pr-conventions)
+  - [Feature PR Flow (target: `dev`)](#feature-pr-flow-target-dev)
+  - [Release PR Flow (dev → main)](#release-pr-flow-dev--main)
+  - [Releasing](#releasing)
+  - [Release Versioning](#release-versioning)
+  - [Commit Conventions](#commit-conventions)
 - [5. CI/CD Tool Selection](#5-cicd-tool-selection)
 - [6. Pipeline Stages](#6-pipeline-stages)
 - [7. Build and Verification Responsibilities](#7-build-and-verification-responsibilities)
+  - [Feature PR Pipeline (target: `dev`)](#feature-pr-pipeline-target-dev)
+  - [Security-Critical Tests](#security-critical-tests)
+  - [Release PR Pipeline (target: `main`)](#release-pr-pipeline-target-main)
+  - [Publish Pipeline (trigger: tag `vX.Y.Z` on `main`)](#publish-pipeline-trigger-tag-vxyz-on-main)
 - [8. Hotfix Process](#8-hotfix-process)
 - [9. Environment Strategy](#9-environment-strategy)
 - [10. Local State Store Migration Strategy](#10-local-state-store-migration-strategy)
@@ -71,17 +83,17 @@ No direct commits to `dev` or `main`. All changes arrive via pull request.
 
 ### Branch Protection Rules
 
-| Rule                    | `dev`                                    | `main`                                             |
-| ----------------------- | ---------------------------------------- | -------------------------------------------------- |
-| Direct pushes           | Blocked                                  | Blocked                                            |
-| PR required             | All changes via PR                       | All changes via PR from `dev` or hotfix            |
-| Required approvals      | **0** (see note)                         | **0** (see note)                                   |
+| Rule                    | `dev`                                            | `main`                                                      |
+| ----------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
+| Direct pushes           | Blocked                                          | Blocked                                                     |
+| PR required             | All changes via PR                               | All changes via PR from `dev` or hotfix                     |
+| Required approvals      | **0** (see note)                                 | **0** (see note)                                            |
 | Status checks           | Must pass (lint, type-check, test, build, audit) | Must pass (lint, type-check, test, build, audit, packaging) |
-| Up-to-date before merge | Required                                 | Required                                           |
-| Conversation resolution | Required                                 | Required                                           |
-| Stale reviews           | Dismissed on new commits                 | Dismissed on new commits                           |
-| Force pushes            | Blocked                                  | Blocked                                            |
-| Tag protection          | —                                        | `v*` tags restricted to maintainers                |
+| Up-to-date before merge | Required                                         | Required                                                    |
+| Conversation resolution | Required                                         | Required                                                    |
+| Stale reviews           | Dismissed on new commits                         | Dismissed on new commits                                    |
+| Force pushes            | Blocked                                          | Blocked                                                     |
+| Tag protection          | —                                                | `v*` tags restricted to maintainers                         |
 
 > **Note on approvals.** DevWorkWire currently has **one part-time maintainer**
 > ([Role Mapping](../../02-planning/role-mapping.md)). Requiring approvals would either
@@ -135,59 +147,35 @@ git rebase upstream/dev
 git push origin feature/<branch-name> --force-with-lease
 ```
 
-### Optional Git Aliases
-
-These user-level aliases simplify fork workflow. Add them to `~/.gitconfig`:
-
-```bash
-git config --global --edit
-```
-
-```ini
-[alias]
-   sync = !git fetch upstream && git merge upstream/$(git branch --show-current) && git push origin HEAD
-   resync = !git fetch upstream && git reset --hard upstream/$(git branch --show-current) && git push origin HEAD --force-with-lease
-   feat = "!f() { test -n \"$1\" || { echo \"usage: git feature <branch-name>\"; return 1; }; git checkout dev && git resync && git checkout -b \"$1\"; }; f"
-```
-
-| Alias             | What it does                                                                                                                                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `git sync`        | Fetches `upstream`, merges `upstream/<current-branch>` into your current branch, then pushes the result to the same branch on your fork (`origin`). Use to bring a local branch up to date without rewriting it. |
-| `git resync`      | Fetches `upstream`, resets your current branch to exactly match `upstream/<current-branch>`, then force-pushes with `--force-with-lease`. Use to make your fork's `dev` or `main` match upstream exactly.        |
-| `git feat <name>` | Checks out `dev`, runs `git resync` so local and fork `dev` match `upstream/dev`, then creates the named feature branch from the refreshed `dev`.                                                               |
-
-**Important:** Use `git resync` only on disposable local copies of shared branches (`dev`
-or `main`). Do not run it on a feature branch that contains unmerged work.
-
 ---
 
 ## 3. Branch Naming Conventions
 
 All work branches are created from `dev` (except hotfixes, which branch from `main`):
 
-| Branch type   | Pattern                       | Example                          | Targets |
-| ------------- | ----------------------------- | -------------------------------- | ------- |
-| Feature       | `feature/<short-description>` | `feature/jira-provider-adapter`  | `dev`   |
-| Bug fix       | `fix/<issue-description>`     | `fix/drift-hash-line-endings`    | `dev`   |
-| Documentation | `docs/<topic>`                | `docs/update-readme`             | `dev`   |
-| Refactoring   | `refactor/<component>`        | `refactor/work-item-service`     | `dev`   |
-| Tests         | `test/<scope>`                | `test/confirm-gate-regressions`  | `dev`   |
-| Chores        | `chore/<task>`                | `chore/update-dependencies`      | `dev`   |
-| Hotfix        | `hotfix/<description>`        | `hotfix/token-leak-in-debug-log` | `main`  |
+| Branch type   | Pattern                       | Example                             | Targets |
+| ------------- | ----------------------------- | ----------------------------------- | ------- |
+| Feature       | `feature/<short-description>` | `feature/jira-provider-adapter`     | `dev`   |
+| Bug fix       | `fix/<issue-description>`     | `fix/drift-hash-line-endings`       | `dev`   |
+| Documentation | `docs/<topic>`                | `docs/update-readme`                | `dev`   |
+| Refactoring   | `refactor/<component>`        | `refactor/work-item-service`        | `dev`   |
+| Tests         | `test/<scope>`                | `test/confirm-gate-regressions`     | `dev`   |
+| Chores        | `chore/<task>`                | `chore/update-dependencies`         | `dev`   |
+| Hotfix        | `hotfix/<description>`        | `hotfix/ncetoken-leak-in-debug-log` | `main`  |
 
 ---
 
 ## 4. PR Conventions
 
-| Field              | Rule                                                                       |
-| ------------------ | -------------------------------------------------------------------------- |
-| Title              | Short description in imperative mood (e.g., `add jira provider adapter`)   |
-| Target branch      | `dev` for features, fixes, docs, refactors, tests, chores; `main` for hotfixes |
-| Merge strategy     | Standard merge commit — preserves full feature branch history               |
-| Required approvals | 0 while single-maintainer; 1 into `dev` / 2 into `main` once a second maintainer joins |
-| CI gate            | **All status checks must pass** — this is the enforcing gate               |
-| Unresolved threads | Must be resolved before merge                                              |
-| Up-to-date         | Branch must be current with target before merge                            |
+| Field                     | Rule                                                                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Title                     | Short description in imperative mood (e.g., `add jira provider adapter`)                                                                  |
+| Target branch             | `dev` for features, fixes, docs, refactors, tests, chores; `main` for hotfixes                                                            |
+| Merge strategy            | Standard merge commit — preserves full feature branch history                                                                             |
+| Required approvals        | 0 while single-maintainer; 1 into `dev` / 1 into `main` once a second maintainer joins                                                    |
+| CI gate                   | **All status checks must pass** — this is the enforcing gate                                                                              |
+| Unresolved threads        | Must be resolved before merge                                                                                                             |
+| Up-to-date                | Branch must be current with target before merge                                                                                           |
 | Security-relevant changes | Any change touching the confirm gate, token handling, or the release workflow states so in the PR description and names the covering test |
 
 ### Feature PR Flow (target: `dev`)
@@ -252,11 +240,11 @@ The project uses semantic versioning (`vMAJOR.MINOR.PATCH`)
 [Interface Design Standards](../interfaces/interface-standards.md#versioning-strategy) for the full
 rules.
 
-| Segment | Increment when                                                                 |
-| ------- | ------------------------------------------------------------------------------ |
+| Segment | Increment when                                                                                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `MAJOR` | Renaming/removing an MCP tool or argument, changing an argument's type or meaning, removing a result field, changing a CLI exit code's meaning, or changing what an error code means |
-| `MINOR` | New tool, new optional argument, new result field, new CLI command or flag, new error code, **or any tightening of a gate** |
-| `PATCH` | Bug fix, backwards-compatible                                                  |
+| `MINOR` | New tool, new optional argument, new result field, new CLI command or flag, new error code, **or any tightening of a gate**                                                          |
+| `PATCH` | Bug fix, backwards-compatible                                                                                                                                                        |
 
 Adding or tightening a gate is deliberately **never** treated as a breaking change worth
 avoiding.
@@ -350,25 +338,25 @@ publication costs a yank and a version bump.
 
 Triggered on every PR targeting `dev`. **Publishes nothing.**
 
-| Check | Tool | Failure policy |
-| ----- | ---- | -------------- |
-| Lint + format | `ruff check`, `ruff format --check` | Blocking |
-| Security lint | Ruff `S` (bandit-derived) ruleset | Blocking |
-| Type check | `mypy` (strict on `core/` and `features/`) | Blocking |
-| Tests | `pytest` on the matrix below | Blocking |
-| Coverage | `pytest-cov` — **≥80% on `WorkItemService` and provider adapters** ([NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline)) | Blocking |
-| Dependency audit | `pip-audit` — **fails on Critical/High** ([NFR-X01](../../01-requirements/README.md#cross-cutting-quality-baseline)) | Blocking |
-| SAST | CodeQL | Blocking |
-| Architecture guard | `presentation/` must not import `infrastructure/`; no slice performs an ungated provider write; Pydantic not imported by `core/` or `features/` ([Architecture Styles](../core/architecture-styles.md)) | Blocking |
-| MCP tool schema snapshot | Generated tool schemas diffed against a committed snapshot | Blocking — an unreviewed contract change must be deliberate ([Interface Design Standards](../interfaces/interface-standards.md#deployment-impact)) |
-| Docs build | Docusaurus build in the docs repo | Blocking |
+| Check                    | Tool                                                                                                                                                                                                    | Failure policy                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Lint + format            | `ruff check`, `ruff format --check`                                                                                                                                                                     | Blocking                                                                                                                               |
+| Security lint            | Ruff `S` (bandit-derived) ruleset                                                                                                                                                                       | Blocking                                                                                                                               |
+| Type check               | `mypy` (strict on `core/` and `features/`)                                                                                                                                                              | Blocking                                                                                                                               |
+| Tests                    | `pytest` on the matrix below                                                                                                                                                                            | Blocking                                                                                                                               |
+| Coverage                 | `pytest-cov` — **≥80% on `WorkItemService` and provider adapters** ([NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline))                                                          | Blocking                                                                                                                               |
+| Dependency audit         | `pip-audit` — **fails on Critical/High** ([NFR-X01](../../01-requirements/README.md#cross-cutting-quality-baseline))                                                                                    | Blocking                                                                                                                               |
+| SAST                     | CodeQL                                                                                                                                                                                                  | Blocking                                                                                                                               |
+| Architecture guard       | No `presentation/` package — the shared hosts or a slice's own `features/*/presentation` — may import `infrastructure/`; no `features/*/application` imports another slice or performs an ungated provider write; Pydantic absent from `core/` and every `features/*/application` ([Architecture Styles](../core/architecture-styles.md#where-the-conventional-layers-live)) | Blocking                                                                                                                               |
+| MCP tool schema snapshot | Generated tool schemas diffed against a committed snapshot                                                                                                                                              | Blocking — an unreviewed contract change must be deliberate ([Interface Design Standards](../interfaces/interface-standards.md#deployment-impact)) |
+| Docs build               | Docusaurus build in the docs repo                                                                                                                                                                       | Blocking                                                                                                                               |
 
 **Test matrix — 6 jobs:**
 
-| OS | Python |
-| -- | ------ |
+| OS              | Python           |
+| --------------- | ---------------- |
 | `ubuntu-latest` | 3.11, 3.12, 3.13 |
-| `macos-latest` | 3.11, 3.12, 3.13 |
+| `macos-latest`  | 3.11, 3.12, 3.13 |
 
 Windows is not tested and not supported — see
 [Deployment Architecture](./deployment-architecture.md#supported-platforms). Testing the
@@ -416,7 +404,7 @@ Everything above, plus:
 7. Create a **GitHub Release** using the changelog entry.
 
 No step in this pipeline touches a user's machine — publication makes an artifact
-*available*; users choose when to install it.
+_available_; users choose when to install it.
 
 ---
 
@@ -472,13 +460,13 @@ nothing is deployed.
 
 There are no hosted environments. The pipeline's "environments" are verification contexts:
 
-| Environment | Purpose | Triggered by | Notes |
-| ----------- | ------- | ------------ | ----- |
-| Local | Development and testing | Developer | `pip install -e .`; a real Jira project for manual verification |
-| CI | Automated verification | Every PR | Ephemeral runners; Linux + macOS × Python 3.11–3.13 |
-| TestPyPI | Pre-publication gate | Tag on `main` | The only thing resembling staging. Proves clean install before PyPI |
-| PyPI | Public release | Tag, after the gate passes | Irreversible |
-| Homebrew tap | Public release (macOS) | Follows the PyPI publish | Pinned sdist hash |
+| Environment  | Purpose                 | Triggered by               | Notes                                                               |
+| ------------ | ----------------------- | -------------------------- | ------------------------------------------------------------------- |
+| Local        | Development and testing | Developer                  | `pip install -e .`; a real Jira project for manual verification     |
+| CI           | Automated verification  | Every PR                   | Ephemeral runners; Linux + macOS × Python 3.11–3.13                 |
+| TestPyPI     | Pre-publication gate    | Tag on `main`              | The only thing resembling staging. Proves clean install before PyPI |
+| PyPI         | Public release          | Tag, after the gate passes | Irreversible                                                        |
+| Homebrew tap | Public release (macOS)  | Follows the PyPI publish   | Pinned sdist hash                                                   |
 
 **Integration testing against Jira** needs a real instance, which CI does not have.
 Provider-adapter tests run against recorded/mocked HTTP responses so the suite stays
@@ -512,13 +500,13 @@ exists.
 
 ## 11. Rollback Strategy
 
-| Layer | Strategy |
-| ----- | -------- |
+| Layer                 | Strategy                                                                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Published release** | **Fix-forward only.** Yank the bad version to block new installs, publish a patched version, update the tap. Already-installed copies keep running — there is no recall |
-| **User-side** | `pipx install devworkwire==<previous>` / `pip install devworkwire==<previous>`. Works only because every release stays on PyPI and the changelog explains what changed |
-| **Local state store** | No down-migrations. The store is rebuildable from Jira, which is the recovery path. A store newer than the binary is refused rather than downgraded |
-| **Repository** | Revert the merge commit on `dev` or `main`, then release a new patch version |
-| **Homebrew tap** | Revert the formula commit to point at the previous pinned version |
+| **User-side**         | `pipx install devworkwire==<previous>` / `pip install devworkwire==<previous>`. Works only because every release stays on PyPI and the changelog explains what changed  |
+| **Local state store** | No down-migrations. The store is rebuildable from Jira, which is the recovery path. A store newer than the binary is refused rather than downgraded                     |
+| **Repository**        | Revert the merge commit on `dev` or `main`, then release a new patch version                                                                                            |
+| **Homebrew tap**      | Revert the formula commit to point at the previous pinned version                                                                                                       |
 
 A version number is **never reused**. A broken `1.2.0` is followed by `1.2.1`.
 
@@ -526,12 +514,12 @@ A version number is **never reused**. A broken `1.2.0` is followed by `1.2.1`.
 
 ## 12. Secrets and Publishing Credentials
 
-| Secret | Where | Notes |
-| ------ | ----- | ----- |
-| PyPI publishing | **None exists.** Trusted Publishing via short-lived OIDC from GitHub Actions | Removes the long-lived PyPI API token that is the standard package-hijacking target (T-005, [Threat Model](../security/threat-model.md)) |
-| TestPyPI publishing | Trusted Publishing, same mechanism | |
-| Homebrew tap push | GitHub Actions secret, scoped to the tap repository only | Least-privilege: it can update the formula and nothing else |
-| Jira API token | **Never in CI.** CI runs no live Jira calls | Users supply their own at run time ([FR-008-02](../../01-requirements/f-008-provider-auth-configuration.md)) |
+| Secret              | Where                                                                        | Notes                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| PyPI publishing     | **None exists.** Trusted Publishing via short-lived OIDC from GitHub Actions | Removes the long-lived PyPI API token that is the standard package-hijacking target (T-005, [Threat Model](../security/threat-model.md)) |
+| TestPyPI publishing | Trusted Publishing, same mechanism                                           |                                                                                                                                          |
+| Homebrew tap push   | GitHub Actions secret, scoped to the tap repository only                     | Least-privilege: it can update the formula and nothing else                                                                              |
+| Jira API token      | **Never in CI.** CI runs no live Jira calls                                  | Users supply their own at run time ([FR-008-02](../../01-requirements/f-008-provider-auth-configuration.md))                             |
 
 - Publishing workflows run **only** on tag events from `main`, in a GitHub Actions
   environment restricted to that trigger.

@@ -31,9 +31,11 @@ CI jobs plus a class of bugs owned by a single part-time maintainer.
   for the guided menu and yes/no confirm prompt, **Rich** for preview tables.
 - **Frozen `dataclasses` in the domain — no third-party dependencies.** Invariants are
   explicit functions returning a *collected* list of item-identifying errors.
-- **Pydantic v2 confined to `infrastructure/` and `presentation/`**, guarding untrusted
-  input (YAML config, MCP tool arguments) and generating the MCP tool JSON schemas. It must
-  not be imported by `core/` or `features/`.
+- **Pydantic v2 confined to the edges** — `infrastructure/` and any `presentation/` package,
+  including each slice's own `features/*/presentation` — guarding untrusted input (YAML
+  config, MCP tool arguments) and generating the MCP tool JSON schemas. It must not be
+  imported by `core/` or by any `features/*/application`
+  ([ADR-001](./adr-001-hexagonal-vertical-slices.md)).
 - **Linux and macOS supported; Windows explicitly not supported.** CI runs a six-job matrix
   (both OSes × Python 3.11 / 3.12 / 3.13).
 

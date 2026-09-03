@@ -74,13 +74,17 @@ The full style evaluation lives in [Architecture Styles](./architecture-styles.m
 ### Key Design Principles
 
 - **One core service, two front doors.** `WorkItemService` and the confirm gate live in
-  the shared kernel, never inside a feature slice. The CLI and the MCP server are both
-  thin presentation adapters over it, which is what
-  [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md) means by "no divergent
-  logic path".
-- **The domain never imports an adapter.** Dependencies point inward: presentation →
-  feature use cases → shared kernel → ports. Jira types never cross the port boundary;
-  the adapter maps them to domain types at the edge.
+  the shared kernel, never inside a feature slice — even though each slice owns its own
+  presentation layer. Every command and every tool reaches the service; none reaches a
+  port. That is what [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md) means by
+  "no divergent logic path".
+- **The domain never imports an adapter.** Dependencies point inward: feature presentation
+  → shared kernel service → feature application → ports. Jira types never cross the port
+  boundary; the adapter maps them to domain types at the edge.
+- **Slices are layered; the kernel is not sliced.** A feature owns its use cases and its
+  front-door fragments. It does *not* own a domain model or a provider adapter — those stay
+  shared, so there is one work-item model and one module that knows Jira exists. See
+  [Where the conventional layers live](./architecture-styles.md#where-the-conventional-layers-live).
 - **Externally-visible writes are gated, structurally.** The confirm gate is a property
   of the core service, not of a caller. There is no parameter, tool, or flag that skips
   it ([FR-004-03](../../01-requirements/f-004-mcp-tool-surface.md)).
@@ -100,21 +104,30 @@ and every slice inherit the same behavior.
 
 ```mermaid
 flowchart TB
-  subgraph presentation["presentation/"]
-    CLI["cli — Typer commands<br/>+ InquirerPy menus"]
+  subgraph hosts["presentation/ — front-door hosts"]
+    CLI["cli — Typer app,<br/>Rich rendering, 80-col"]
     MCPS["mcp — MCP server<br/>(stdio, Phase 1)"]
   end
 
-  subgraph kernel["core/ — shared kernel"]
-    SVC["WorkItemService<br/>+ confirm gate + Trust Tier"]
-    DOM["domain — WorkItem, Epic,<br/>Story, AC, value objects"]
-    PORTS["ports — WorkItemProvider,<br/>StateStore"]
+  subgraph features["features/ — internally layered slices"]
+    subgraph imp["import_"]
+      IMPP["presentation — commands,<br/>tool schemas"]
+      IMPA["application — parse, validate,<br/>preview, dedup, commit"]
+    end
+    subgraph wi["workitem"]
+      WIP["presentation"]
+      WIA["application — read/create/<br/>update, query"]
+    end
+    subgraph prog["progress"]
+      PROGP["presentation"]
+      PROGA["application — comment,<br/>transition, PR reference"]
+    end
   end
 
-  subgraph features["features/"]
-    IMP["import_ — parse, validate,<br/>preview, dedup, commit"]
-    WI["workitem — single-item<br/>read/create/update, query"]
-    PROG["progress — comment,<br/>transition, PR reference"]
+  subgraph kernel["core/ — shared kernel"]
+    SVC["service.py — WorkItemService<br/>+ confirm gate + Trust Tier"]
+    DOM["domain — WorkItem, Epic,<br/>Story, AC, value objects"]
+    PORTS["ports — WorkItemProvider,<br/>StateStore"]
   end
 
   subgraph infra["infrastructure/"]
@@ -124,17 +137,25 @@ flowchart TB
 
   COMP["composition/container.py"]
 
-  CLI --> SVC
-  MCPS --> SVC
-  SVC --> IMP
-  SVC --> WI
-  SVC --> PROG
-  IMP --> DOM
-  WI --> DOM
-  PROG --> DOM
-  IMP --> PORTS
-  WI --> PORTS
-  PROG --> PORTS
+  CLI -.hosts.-> IMPP
+  CLI -.hosts.-> WIP
+  CLI -.hosts.-> PROGP
+  MCPS -.hosts.-> IMPP
+  MCPS -.hosts.-> WIP
+  MCPS -.hosts.-> PROGP
+
+  IMPP --> SVC
+  WIP --> SVC
+  PROGP --> SVC
+  SVC --> IMPA
+  SVC --> WIA
+  SVC --> PROGA
+  IMPA --> DOM
+  WIA --> DOM
+  PROGA --> DOM
+  IMPA --> PORTS
+  WIA --> PORTS
+  PROGA --> PORTS
   JIRA -.implements.-> PORTS
   LOCAL -.implements.-> PORTS
   COMP -.wires.-> JIRA
@@ -142,16 +163,23 @@ flowchart TB
   COMP -.wires.-> SVC
 ```
 
+Every write path runs `feature presentation → WorkItemService → feature application →
+port`. A feature's presentation layer holds its commands and tool schemas but reaches the
+core service exactly as the hosts once did; it never touches a port or an adapter directly.
+
 | Component | Responsibility | Key interfaces |
 | --------- | -------------- | -------------- |
-| `presentation/cli` | Renders the guided flow, prompts for confirmation, formats preview output for an 80-column terminal ([NFR-003-01](../../01-requirements/f-003-cli-dwire-flow.md)). Holds no business rules. | Typer commands; calls `WorkItemService` |
-| `presentation/mcp` | Exposes `import.preview` / `import.commit` and the read-only query tools as MCP tools; marshals arguments and results. Holds no business rules. | MCP tool schemas; calls `WorkItemService` |
-| `core/WorkItemService` | The single entry point both front doors use. Classifies each operation by Trust Tier and enforces the confirm gate before dispatching to a slice's use case. | Called by presentation; calls feature use cases |
-| `core/domain` | Provider-neutral work-item model and invariants. No Jira vocabulary, no I/O. | Pure types |
+| `presentation/cli` | Hosts the Typer app and owns the shared rendering conventions: 80-column preview output ([NFR-003-01](../../01-requirements/f-003-cli-dwire-flow.md)) and text-prefixed errors ([NFR-X06](../../01-requirements/README.md#cross-cutting-quality-baseline)). Registers each feature's commands; defines none of its own. | Typer app object; InquirerPy confirm prompt |
+| `presentation/mcp` | Hosts the stdio MCP server and owns the shared result envelope, including `result_type` on every result. Registers each feature's tools; defines none of its own. | MCP server object |
+| `core/service.py` | `WorkItemService` — the single entry point both front doors use. Classifies each operation by Trust Tier and enforces the confirm gate before dispatching to a slice's use case. | Called by feature presentation; calls feature application |
+| `core/domain` | Provider-neutral work-item model and invariants. One model shared by all three slices. No Jira vocabulary, no I/O. | Pure types |
 | `core/ports` | `WorkItemProvider` (tracker read/write) and `StateStore` (local import references, drift baselines, idempotency keys). | Protocols implemented by `infrastructure/` |
-| `features/import_` | Markdown parsing, structural validation, preview construction, dedup matching and drift detection, fail-fast batch commit. Covers [F-001](../../01-requirements/f-001-validate-preview-commit.md) and [F-002](../../01-requirements/f-002-dedup-on-rerun.md). | Use cases invoked by `WorkItemService` |
-| `features/workitem` | Single-item create/read/update without a full re-import, plus status/assignee-filtered queries. Covers [F-005](../../01-requirements/f-005-work-item-crud.md) and [F-006](../../01-requirements/f-006-mcp-work-context-query.md). | Use cases invoked by `WorkItemService` |
-| `features/progress` | Comments, status transitions, and PR-reference writes. Covers [F-007](../../01-requirements/f-007-progress-reporting.md). | Use cases invoked by `WorkItemService` |
+| `features/import_/application` | Markdown parsing, structural validation, preview construction, dedup matching and drift detection, fail-fast batch commit. Covers [F-001](../../01-requirements/f-001-validate-preview-commit.md) and [F-002](../../01-requirements/f-002-dedup-on-rerun.md). | Use cases invoked by `WorkItemService` |
+| `features/import_/presentation` | This slice's `dwire import` command and its `import.preview` / `import.commit` tool schemas. Holds no business rules. | Registered into both hosts |
+| `features/workitem/application` | Single-item create/read/update without a full re-import, plus status/assignee-filtered queries. Covers [F-005](../../01-requirements/f-005-work-item-crud.md) and [F-006](../../01-requirements/f-006-mcp-work-context-query.md). | Use cases invoked by `WorkItemService` |
+| `features/workitem/presentation` | This slice's `dwire search` / `dwire insert` commands and its `workitem.*` tool schemas. | Registered into both hosts |
+| `features/progress/application` | Comments, status transitions, and PR-reference writes. Covers [F-007](../../01-requirements/f-007-progress-reporting.md). | Use cases invoked by `WorkItemService` |
+| `features/progress/presentation` | This slice's progress commands and its `progress.*` tool schemas. | Registered into both hosts |
 | `infrastructure/external/jira` | The only module that knows Jira exists: REST v3 calls over `httpx`, field mapping, retry/backoff, error translation. | Implements `WorkItemProvider` |
 | `infrastructure/local` | Config loading and validation ([F-008](../../01-requirements/f-008-provider-auth-configuration.md)), and the local state store. | Implements `StateStore` |
 | `composition/container.py` | The composition root. The only place concrete adapters are constructed and injected. | Wires everything for both entry points |
@@ -281,39 +309,38 @@ load rather than committing to numbers.
 
 ## Trade-offs and Alternatives
 
-| Option | Pros | Cons | Verdict |
-| ------ | ---- | ---- | ------- |
-| Hexagonal + vertical feature slices, one package | Provider swap is a Phase 2 non-event; feature code stays co-located and readable; single artifact to ship and install | Slicing tempts each slice toward its own confirm/write path, which would break [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md); more indirection than a small tool strictly needs | **Selected** — the slicing risk is contained by keeping `WorkItemService` and the confirm gate in the shared kernel |
-| Hexagonal + strict layering (no slices) | Hardest to accidentally duplicate the gate; conventional and immediately legible to a new contributor | Feature code scatters across four layer directories, so a single change touches four distant folders | Rejected — co-location was judged worth more than the extra guard, given the gate is already centralized |
-| Direct Jira calls from CLI/MCP, no port | Least code for the Jira-only MVP | Phase 2 (Linear, Azure DevOps) becomes a rewrite; Jira types leak into every layer; the core becomes untestable without network mocking, defeating [NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline) | Rejected — contradicts a stated technical goal |
-| Separate CLI and MCP codebases | Each front door optimized independently | Two confirm gates to keep honest, which is exactly the "looser agent path" the project exists to avoid ([Key Differentiators](../../00-context/overview.md#key-differentiators)) | Rejected — defeats the product's central claim |
-| Client/server: local daemon, thin CLI | Shared session state; a remote MCP endpoint becomes possible | A background daemon holding tracker credentials, plus a network surface, on a developer's machine — large security and support cost for no MVP benefit | Rejected — no requirement justifies it |
+**Selected:** hexagonal + vertical feature slices in one package. Four alternatives were
+weighed and rejected — strict layering without slices, direct Jira calls with no port,
+separate CLI and MCP codebases, and a local daemon with a thin client.
 
-**Accepted risk:** vertical slicing makes it structurally *possible* for a future slice to
-call `WorkItemProvider` directly and skip the gate. Mitigation: the gate lives in the
-shared kernel, slice use cases are only reachable through `WorkItemService`, and an
-architecture guard in CI should assert that nothing under `presentation/` imports
+- The criterion-by-criterion comparison is in
+  [Architecture Style Evaluation](./architecture-styles.md#architecture-style-evaluation).
+- The reason each alternative was rejected is recorded in
+  [ADR-001 § Alternatives Considered](../../04-decisions/adr-001-hexagonal-vertical-slices.md#alternatives-considered).
+
+**The accepted risk this design must actively contain:** vertical slicing makes it
+structurally *possible* for a future slice to call `WorkItemProvider` directly and skip the
+gate, which would break [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md). The
+mitigation is why `WorkItemService` and the confirm gate sit in the shared kernel above,
+and why the CI architecture guard asserts that nothing under `presentation/` imports
 `infrastructure/` and that no slice calls a write method on `WorkItemProvider` outside a
 gated use case. See [Quality Gates](../ops/ci-cd-pipeline.md).
 
 ## ADR Reference
 
-The decisions recorded on this page and in [Technology Stack](./technology-stack.md) are
-captured in [04-decisions](../../04-decisions/README.md). All ten are currently **Proposed**
-— promote each to Accepted as its Phase 0 / MVP implementation confirms it.
+The design on this page rests directly on
+**[ADR-001](../../04-decisions/adr-001-hexagonal-vertical-slices.md)** (hexagonal with
+vertical feature slices, single package), which is the authoritative record of the decision,
+its consequences, and the alternatives rejected. Two further decisions shape structures
+described above: **[ADR-004](../../04-decisions/adr-004-mcp-stdio-confirm-gate.md)** for the
+stdio MCP transport and preview-handle gate, and
+**[ADR-005](../../04-decisions/adr-005-local-sqlite-state-store.md)** for the `StateStore`
+implementation behind step 7 of the data flow.
 
-| ADR | Decision | Also recorded in |
-| --- | -------- | ---------------- |
-| [ADR-001](../../04-decisions/adr-001-hexagonal-vertical-slices.md) | Hexagonal architecture with vertical feature slices, single package | This document, [Architecture Styles](./architecture-styles.md) |
-| [ADR-002](../../04-decisions/adr-002-python-runtime-cli-platforms.md) | Python 3.11+ baseline; Typer + InquirerPy CLI; supported platforms | [Technology Stack](./technology-stack.md) |
-| [ADR-003](../../04-decisions/adr-003-jira-rest-httpx.md) | Jira access via direct REST v3 over `httpx` | [Technology Stack](./technology-stack.md) |
-| [ADR-004](../../04-decisions/adr-004-mcp-stdio-confirm-gate.md) | MCP server on stdio only, with the preview-handle confirm gate | [Interface Design Standards](../interfaces/interface-standards.md) |
-| [ADR-005](../../04-decisions/adr-005-local-sqlite-state-store.md) | Local SQLite state store as a rebuildable cache | [Database Design](../database/database-design.md) |
-| [ADR-006](../../04-decisions/adr-006-config-and-secrets.md) | Per-project YAML config + environment-variable secret | [Security Architecture](../security/security-architecture.md) |
-| [ADR-007](../../04-decisions/adr-007-packaging-and-release.md) | Hatchling build backend; PyPI/pipx/Homebrew distribution; Trusted Publishing | [Deployment Architecture](../ops/deployment-architecture.md) |
-| [ADR-008](../../04-decisions/adr-008-quality-toolchain-github-actions.md) | Quality and security toolchain on GitHub Actions | [CI/CD Pipeline](../ops/ci-cd-pipeline.md) |
-| [ADR-009](../../04-decisions/adr-009-no-telemetry.md) | No telemetry; local diagnosability only | [Monitoring and Observability](../ops/monitoring-observability.md) |
-| [ADR-010](../../04-decisions/adr-010-git-workflow-branch-strategy.md) | Two-branch fork-based workflow, CI as the merge gate | [CI/CD Pipeline](../ops/ci-cd-pipeline.md) |
+The full index of all ten ADRs — with the primary source document for each — is the
+[Decision Records table](../README.md#decision-records) in the architecture README. All ten
+are currently **Proposed**; promote each to Accepted as its Phase 0 / MVP implementation
+confirms it.
 
 ## Source References
 
@@ -326,4 +353,4 @@ captured in [04-decisions](../../04-decisions/README.md). All ten are currently 
 
 ---
 
-**Last Updated**: 2026-08-31
+**Last Updated**: 2026-09-03

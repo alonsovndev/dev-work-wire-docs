@@ -23,7 +23,10 @@ sidebar_position: 2
 ## Decision Summary
 
 **Selected style:** Hexagonal (Ports & Adapters) with vertical feature slices, shipped as
-a single distributable Python package.
+a single distributable Python package. Slices are **internally layered** — each owns its
+`application/` and `presentation/` — while the domain model, the ports, the confirm gate,
+and the provider adapter stay in a shared kernel. See
+[Where the conventional layers live](#where-the-conventional-layers-live).
 **Linked ADR:** [ADR-001 — Hexagonal Architecture with Vertical Feature Slices](../../04-decisions/adr-001-hexagonal-vertical-slices.md) (Proposed).
 
 > **Note on this evaluation.** The usual monolith / modular-monolith / microservices axis
@@ -69,53 +72,72 @@ Contexts map one-to-one onto the feature slices, with a shared kernel holding wh
 not be duplicated. All dependencies point inward toward the kernel; no slice depends on
 another slice.
 
-| Bounded Context | Module/Package | Responsibility | Depends On |
-| --------------- | -------------- | -------------- | ---------- |
-| Work Item Model (shared kernel) | `core/domain` | Provider-neutral Epic / Story / Acceptance Criteria model, value objects, invariants | — (depends on nothing) |
-| Trust & Orchestration (shared kernel) | `core` — `WorkItemService`, confirm gate | Classifies every operation by Trust Tier and enforces confirm-before-execute; the single entry point for both front doors | `core/domain`, `core/ports` |
-| Provider Contract | `core/ports` | `WorkItemProvider` and `StateStore` protocols | `core/domain` |
-| Document Loading | `features/import_` | Markdown parsing, structural validation, preview construction, dedup matching, drift detection, fail-fast commit ([F-001](../../01-requirements/f-001-validate-preview-commit.md), [F-002](../../01-requirements/f-002-dedup-on-rerun.md)) | `core/domain`, `core/ports` |
-| Work Item Access | `features/workitem` | Single-item create/read/update; status- and assignee-filtered queries ([F-005](../../01-requirements/f-005-work-item-crud.md), [F-006](../../01-requirements/f-006-mcp-work-context-query.md)) | `core/domain`, `core/ports` |
-| Progress Reporting | `features/progress` | Comments, status transitions, PR-reference writes ([F-007](../../01-requirements/f-007-progress-reporting.md)) | `core/domain`, `core/ports` |
-| Tracker Integration | `infrastructure/external/jira` | The only Jira-aware code: REST v3 calls, field mapping, retry, error translation | `core/ports`, `core/domain` |
-| Local Persistence & Config | `infrastructure/local` | Config load/validate ([F-008](../../01-requirements/f-008-provider-auth-configuration.md)); import references, drift baselines, idempotency keys | `core/ports` |
-| Front Doors | `presentation/cli`, `presentation/mcp` | Rendering, prompting, tool schemas — no business rules ([F-003](../../01-requirements/f-003-cli-dwire-flow.md), [F-004](../../01-requirements/f-004-mcp-tool-surface.md)) | `core` only |
-| Composition Root | `composition` | Constructs and injects concrete adapters; the only module that names both a port and its implementation | Everything |
+This table is the **dependency map** — what each context may import. Full per-module
+responsibilities and interfaces are in
+[Component Design](./architecture-solution-design.md#component-design); the feature docs
+each context implements are named there.
 
-**Invariant to enforce:** `presentation/` must never import `infrastructure/`, and no
-feature slice may import another feature slice. Both are mechanically checkable and
-belong in CI (see [CI/CD Pipeline](../ops/ci-cd-pipeline.md)).
+| Bounded Context | Module/Package | Depends On |
+| --------------- | -------------- | ---------- |
+| Work Item Model (shared kernel) | `core/domain` | — (depends on nothing) |
+| Provider Contract (shared kernel) | `core/ports` | `core/domain` |
+| Trust & Orchestration (shared kernel) | `core/service.py` — `WorkItemService`, confirm gate | `core/domain`, `core/ports` |
+| Document Loading | `features/import_/application` | `core/*` |
+| Document Loading — front doors | `features/import_/presentation` | own `application`, `core/*`, `presentation/*` |
+| Work Item Access | `features/workitem/application` | `core/*` |
+| Work Item Access — front doors | `features/workitem/presentation` | own `application`, `core/*`, `presentation/*` |
+| Progress Reporting | `features/progress/application` | `core/*` |
+| Progress Reporting — front doors | `features/progress/presentation` | own `application`, `core/*`, `presentation/*` |
+| Tracker Integration | `infrastructure/external/jira` | `core/ports`, `core/domain` |
+| Local Persistence & Config | `infrastructure/local` | `core/ports` |
+| Front-Door Hosts | `presentation/cli`, `presentation/mcp` | `core/*` only |
+| Composition Root | `composition` | Everything |
+
+**Invariants to enforce.** All are mechanically checkable and belong in CI (see
+[CI/CD Pipeline](../ops/ci-cd-pipeline.md)):
+
+- No `presentation/` package — the shared hosts *or* a feature's own — may import
+  `infrastructure/`.
+- No feature's `application/` may import another feature, `infrastructure/`, or any
+  `presentation/`.
+- `composition/` is the only package permitted to import everything.
+
+### Where the conventional layers live
+
+Slices are **internally layered**, so the familiar four layers are all present — but three
+of them are distributed by feature rather than collected into one directory each. There is
+no top-level `application/` folder, and that is the decision, not an omission: a directory
+per layer is exactly the "layered hexagonal" candidate rejected above.
+
+| Conventional layer | Where it lives here |
+| ------------------ | ------------------- |
+| Domain | `core/domain` — one model, shared. `import_` creates it, `workitem` updates it, `progress` comments on it, so splitting it per feature would duplicate it or leave it hollow. |
+| Application | **Split by role.** Cross-cutting orchestration — `WorkItemService` and the confirm gate — is `core/service.py`; the use cases themselves are `features/*/application`. |
+| Infrastructure | `infrastructure/external/jira` and `infrastructure/local` — deliberately *not* per feature, so Jira knowledge stays in one place and a Phase 2 provider is one new file rather than three. |
+| Presentation | **Split by role.** The two hosts and the shared rendering conventions are `presentation/cli` and `presentation/mcp`; each feature's own commands and tool schemas are `features/*/presentation`. |
+
+The two layers that stay whole — domain and infrastructure — are the two the slices have no
+reason to own separately. The two that split — application and presentation — are where
+feature cohesion actually pays.
 
 ## Rationale and Trade-offs
 
-- **Pros**
-  - Phase 2 provider adapters are additive: implement `WorkItemProvider`, register it in
-    the composition root, change nothing else — exactly the stated technical goal.
-  - The confirm gate exists once, so the CLI and MCP cannot drift apart
-    ([FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md)) — the product's central
-    claim is structurally protected rather than maintained by discipline.
-  - Core logic is testable with in-memory fakes for both ports, making the ≥80% coverage
-    target in [NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline)
-    reachable without network mocking.
-  - Feature slices line up with the feature docs, so a requirement change has an obvious
-    home.
-  - Zero operational footprint: one package, one process, no listener.
+The full consequences of this choice — five benefits and four accepted risks, each with
+its mitigation — are recorded in
+[ADR-001 § Consequences](../../04-decisions/adr-001-hexagonal-vertical-slices.md#consequences)
+and are not repeated here. What the evaluation above adds is *why this candidate rather
+than the others*:
 
-- **Cons / accepted risks**
-  - *A slice could bypass the confirm gate.* Slicing puts write-capable use cases next to
-    the provider port. **Mitigation:** the gate lives in the shared kernel; slice use cases
-    are reachable only through `WorkItemService`; a CI import/architecture guard asserts no
-    slice performs an ungated provider write.
-  - *Shared-kernel gravity.* Anything genuinely shared drifts into `core/`, which can
-    swell into a junk drawer. **Mitigation:** the kernel is limited to the domain model,
-    the two ports, and the service/gate; anything else needs a justification recorded in an
-    ADR.
-  - *More indirection than a ~5k-line tool strictly needs.* **Mitigation:** accepted
-    deliberately — it is the price of the Phase 2 goal, and it is paid once, in Phase 0's
-    architecture skeleton.
-  - *Cross-slice features are awkward.* A future capability spanning import and progress
-    has no natural home. **Mitigation:** promote genuinely shared behavior to the kernel
-    rather than letting slices import each other.
+- **It is the only option strong on both deciding axes at once.** Provider-swap cost
+  (the Phase 2 goal) and solo-developer ergonomics (the top project risk) are usually
+  traded against each other — the flat CLI wins the second and loses the first, layering
+  wins the first at a navigation cost paid on every change. Slices over a port win both.
+- **Its one weakness is cheap to contain; its rivals' are not.** The structurally possible
+  ungated write path is fixed by keeping the gate in the shared kernel and asserting it in
+  CI. The flat option's coupling and the daemon option's security surface are not fixable
+  without abandoning the choice.
+- **It adds nothing operationally.** Unlike the daemon, it buys its evolution path without
+  a process to run, a credential at rest, or a listener to defend.
 
 ## Evolution Strategy
 
@@ -169,22 +191,15 @@ anything is built on the assumption that it generalizes.
 
 ## Scalability Alignment
 
-The scalability NFR ([NFR-X05](../../01-requirements/README.md#cross-cutting-quality-baseline))
-is **Draft** with a `TBD` target, deliberately: the scope is bounded to one Jira project
-per configuration ([FR-008-04](../../01-requirements/f-008-provider-auth-configuration.md)),
-and the tool is single-user and interactive by construction. There is no concurrent load
-to scale against.
+The load this system sees, and why `NFR-X04`/`NFR-X05` remain `TBD`, are described once in
+[Scalability Considerations](./architecture-solution-design.md#scalability-considerations).
 
-What the chosen style does provide is that **growth is absorbed at the edges**. Document
-size, item count, and Jira round-trips are all handled inside the import slice and the
-Jira adapter; the domain model and the confirm gate are indifferent to volume.
-
-At roughly 10x today's assumed working set — say, a several-hundred-item document — the
-constraint would be Jira's API round-trips and rate limits, not DevWorkWire's structure.
-The changes that would follow (streaming the parse instead of holding the tree in memory;
-bounded-concurrency commits with per-item rather than fail-fast error handling) are both
-contained within `features/import_` and the Jira adapter. **No style change is implied.**
-Revisit once `NFR-X04` and `NFR-X05` have measured targets.
+The claim that belongs *here* is narrower: **growth is absorbed at the edges, so no style
+change is implied.** Document size, item count, and Jira round-trips are all handled inside
+`features/import_` and the Jira adapter; the domain model and the confirm gate are
+indifferent to volume. The two changes a much larger working set would force — streaming
+the parse, and bounded-concurrency commits — are contained within those same two modules.
+Scaling this tool means changing an adapter, not the architecture.
 
 ## Source References
 
@@ -196,4 +211,4 @@ Revisit once `NFR-X04` and `NFR-X05` have measured targets.
 
 ---
 
-**Last Updated**: 2026-08-31
+**Last Updated**: 2026-09-03

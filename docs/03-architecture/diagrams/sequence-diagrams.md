@@ -51,10 +51,10 @@ by "no divergent logic path", and it is why flows 2 and 4 differ only at the edg
 | Participant | Maps to |
 | ----------- | ------- |
 | `User` / `Agent` | Maya at a terminal, or Idris's AI agent via a harness |
-| `CLI` | `presentation/cli` — Typer + InquirerPy |
-| `MCP` | `presentation/mcp` — MCP server over stdio |
-| `SVC` | `core` — `WorkItemService` and the confirm gate |
-| `IMP` | `features/import_` — parse, validate, classify, commit |
+| `CLI` | `presentation/cli` (Typer host + InquirerPy) plus the acting slice's own `features/*/presentation` commands |
+| `MCP` | `presentation/mcp` (stdio server host) plus the acting slice's own `features/*/presentation` tool schemas |
+| `SVC` | `core/service.py` — `WorkItemService` and the confirm gate |
+| `IMP` | `features/import_/application` — parse, validate, classify, commit |
 | `Store` | `infrastructure/local` — SQLite state store |
 | `Jira` | `infrastructure/external/jira` → Jira Cloud REST v3 |
 

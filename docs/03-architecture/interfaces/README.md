@@ -4,18 +4,12 @@
 
 The contracts DevWorkWire publishes and consumes.
 
-> **Scope note.** DevWorkWire publishes **no HTTP API** — there is no server, no base path,
-> and no endpoint to secure. This domain covers the three contracts the system actually
-> has: the **MCP tool surface** (inbound, JSON-RPC over stdio) as the primary published
-> contract, the **`dwire` CLI** command surface, and the **Jira Cloud REST v3** API it
-> consumes. HTTP conventions appear only where they apply to that outbound client.
-
 ## Documents
 
-| Document | Description |
-| -------- | ----------- |
-| [interface-standards.md](./interface-standards.md) | Interface inventory, MCP tool conventions, the confirm gate as contract rules, versioning, error taxonomy, CLI conventions, Jira client rules |
-| [interface-contract.md](./interface-contract.md) | MCP tool catalog and detailed contracts, CLI command catalog, shared schemas, error catalog, consumed Jira endpoints |
+| Document                                        | Description                                                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Interface Standards](./interface-standards.md) | Interface inventory, MCP tool conventions, the confirm gate as contract rules, versioning, error taxonomy, CLI conventions, Jira client rules |
+| [Interface Contract](./interface-contract.md)   | MCP tool catalog and detailed contracts, CLI command catalog, shared schemas, error catalog, consumed Jira endpoints                          |
 
 ## The Two Write Tools
 
@@ -39,16 +33,16 @@ See the full [ADR Decision Log](../../04-decisions/README.md).
 
 ## Requirements Coverage
 
-| Requirement | Contract element |
-| ----------- | ---------------- |
-| [FR-003-01](../../01-requirements/f-003-cli-dwire-flow.md) | `dwire import <file>` |
-| [FR-003-04/05](../../01-requirements/f-003-cli-dwire-flow.md) | `dwire search`, `dwire insert` |
-| [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md) | `import.preview` and the CLI preview step share one `WorkItemService` |
-| [FR-004-02/03](../../01-requirements/f-004-mcp-tool-surface.md) | `preview_handle` + `confirmed` required on every `*.commit` |
-| [FR-004-04](../../01-requirements/f-004-mcp-tool-surface.md) | `idempotency_key` with stored-result replay |
-| [FR-005-01…04](../../01-requirements/f-005-work-item-crud.md) | `workitem.get`; single-item CRUD via `import.preview`'s inline form |
-| [FR-006-01…03](../../01-requirements/f-006-mcp-work-context-query.md) | `workitem.query` |
-| [FR-007-01…04](../../01-requirements/f-007-progress-reporting.md) | `progress.preview` / `progress.commit` |
-| [FR-008-03](../../01-requirements/f-008-provider-auth-configuration.md) | `CONFIG_*` errors precede any Jira-touching call; `dwire config check` |
-| [NFR-004-01](../../01-requirements/f-004-mcp-tool-surface.md) | `result_type` on every result |
-| [NFR-X06](../../01-requirements/README.md#cross-cutting-quality-baseline) | Text-prefixed CLI errors, exit-code table |
+| Requirement                                                               | Contract element                                                       |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [FR-003-01](../../01-requirements/f-003-cli-dwire-flow.md)                | `dwire import <file>`                                                  |
+| [FR-003-04/05](../../01-requirements/f-003-cli-dwire-flow.md)             | `dwire search`, `dwire insert`                                         |
+| [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md)              | `import.preview` and the CLI preview step share one `WorkItemService`  |
+| [FR-004-02/03](../../01-requirements/f-004-mcp-tool-surface.md)           | `preview_handle` + `confirmed` required on every `*.commit`            |
+| [FR-004-04](../../01-requirements/f-004-mcp-tool-surface.md)              | `idempotency_key` with stored-result replay                            |
+| [FR-005-01…04](../../01-requirements/f-005-work-item-crud.md)             | `workitem.get`; single-item CRUD via `import.preview`'s inline form    |
+| [FR-006-01…03](../../01-requirements/f-006-mcp-work-context-query.md)     | `workitem.query`                                                       |
+| [FR-007-01…04](../../01-requirements/f-007-progress-reporting.md)         | `progress.preview` / `progress.commit`                                 |
+| [FR-008-03](../../01-requirements/f-008-provider-auth-configuration.md)   | `CONFIG_*` errors precede any Jira-touching call; `dwire config check` |
+| [NFR-004-01](../../01-requirements/f-004-mcp-tool-surface.md)             | `result_type` on every result                                          |
+| [NFR-X06](../../01-requirements/README.md#cross-cutting-quality-baseline) | Text-prefixed CLI errors, exit-code table                              |

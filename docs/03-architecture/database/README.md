@@ -5,19 +5,11 @@
 Database architecture domain: schema design, integrity rules, access patterns, and
 migration guidance.
 
-> **Scope note.** DevWorkWire has **no server database**. Jira is the system of record for
-> every work item. What this domain covers is a small local **SQLite state store**
-> (`.devworkwire/state.db`, gitignored, one per project) that exists solely to make
-> re-runs safe and the confirm gate enforceable: it caches the source-item → Jira-issue
-> index, records drift baselines, holds issued preview handles with the plans they
-> authorize, and stores commit idempotency records. The checklists below are adapted to
-> that reality rather than to a hosted relational database.
-
 ## Documents
 
-| Document | Description |
-| -------- | ----------- |
-| [database-design.md](./database-design.md) | Entities, relationships, ERD, constraints, and access patterns |
+| Document                                | Description                                                    |
+| --------------------------------------- | -------------------------------------------------------------- |
+| [Database Design](./database-design.md) | Entities, relationships, ERD, constraints, and access patterns |
 
 ## Related ADRs
 
@@ -43,18 +35,18 @@ notion of hosted database operations — there are none.
 
 ## Requirements Coverage
 
-| Requirement | Schema Element(s) | Notes |
-| ----------- | ----------------- | ----- |
-| [FR-002-01](../../01-requirements/f-002-dedup-on-rerun.md) | Jira custom field (external) + `imported_item.source_item_id` | Authoritative reference lives on the issue; the table indexes it |
-| [FR-002-02](../../01-requirements/f-002-dedup-on-rerun.md) | `imported_item` unique `(provider, project_key, source_document, source_item_id)` | Re-run matches instead of creating |
-| [FR-002-03](../../01-requirements/f-002-dedup-on-rerun.md) | `imported_item.baseline_hash` | Drift = live managed-field hash ≠ stored baseline |
-| [FR-001-05](../../01-requirements/f-001-validate-preview-commit.md) | `preview.plan_json` | Commit executes the stored plan, not a recomputed one |
-| [FR-001-06](../../01-requirements/f-001-validate-preview-commit.md) | `commit_run_item.outcome`, `sequence` | Committed / failed / untried split for fail-fast batches |
-| [FR-004-02/03](../../01-requirements/f-004-mcp-tool-surface.md) | `preview.handle`, `kind`, `expires_at`, `consumed_at` | No commit without a live, matching, unconsumed handle |
-| [FR-004-04](../../01-requirements/f-004-mcp-tool-surface.md) | `commit_run.idempotency_key` (unique), `result_json` | Retry replays the stored result with zero new writes |
-| [NFR-002-01](../../01-requirements/f-002-dedup-on-rerun.md) | Dedicated Jira custom field, not a label | Survives unrelated issue edits |
-| [NFR-008-01](../../01-requirements/f-008-provider-auth-configuration.md) | No credential column exists | Enforced by schema, not policy |
-| [NFR-X02](../../01-requirements/README.md#cross-cutting-quality-baseline) | Hash baseline instead of a content snapshot | **Partially covered.** No content in the permanent index, but `preview.plan_json` holds issue content transiently under a TTL — see the open item in [database-design.md](./database-design.md#risks-and-open-questions) |
+| Requirement                                                               | Schema Element(s)                                                                 | Notes                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [FR-002-01](../../01-requirements/f-002-dedup-on-rerun.md)                | Jira custom field (external) + `imported_item.source_item_id`                     | Authoritative reference lives on the issue; the table indexes it                                                                                                                                                         |
+| [FR-002-02](../../01-requirements/f-002-dedup-on-rerun.md)                | `imported_item` unique `(provider, project_key, source_document, source_item_id)` | Re-run matches instead of creating                                                                                                                                                                                       |
+| [FR-002-03](../../01-requirements/f-002-dedup-on-rerun.md)                | `imported_item.baseline_hash`                                                     | Drift = live managed-field hash ≠ stored baseline                                                                                                                                                                        |
+| [FR-001-05](../../01-requirements/f-001-validate-preview-commit.md)       | `preview.plan_json`                                                               | Commit executes the stored plan, not a recomputed one                                                                                                                                                                    |
+| [FR-001-06](../../01-requirements/f-001-validate-preview-commit.md)       | `commit_run_item.outcome`, `sequence`                                             | Committed / failed / untried split for fail-fast batches                                                                                                                                                                 |
+| [FR-004-02/03](../../01-requirements/f-004-mcp-tool-surface.md)           | `preview.handle`, `kind`, `expires_at`, `consumed_at`                             | No commit without a live, matching, unconsumed handle                                                                                                                                                                    |
+| [FR-004-04](../../01-requirements/f-004-mcp-tool-surface.md)              | `commit_run.idempotency_key` (unique), `result_json`                              | Retry replays the stored result with zero new writes                                                                                                                                                                     |
+| [NFR-002-01](../../01-requirements/f-002-dedup-on-rerun.md)               | Dedicated Jira custom field, not a label                                          | Survives unrelated issue edits                                                                                                                                                                                           |
+| [NFR-008-01](../../01-requirements/f-008-provider-auth-configuration.md)  | No credential column exists                                                       | Enforced by schema, not policy                                                                                                                                                                                           |
+| [NFR-X02](../../01-requirements/README.md#cross-cutting-quality-baseline) | Hash baseline instead of a content snapshot                                       | **Partially covered.** No content in the permanent index, but `preview.plan_json` holds issue content transiently under a TTL — see the open item in [database-design.md](./database-design.md#risks-and-open-questions) |
 
 ## Database Best Practices Applied
 

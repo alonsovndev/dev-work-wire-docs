@@ -4,7 +4,7 @@
 | ----------- | ----------- |
 | **Project** | DevWorkWire |
 | **Version** | 0.1         |
-| **Status**  | Draft       |
+| **Status**  | Accepted    |
 
 ## Table of Contents
 

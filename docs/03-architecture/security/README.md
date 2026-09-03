@@ -4,13 +4,6 @@
 
 Security architecture and threat modeling for DevWorkWire.
 
-> **Scope note.** DevWorkWire is a locally installed CLI and stdio MCP server — no server,
-> no listening port, no accounts, no sessions, no login. The conventional web-application
-> controls (auth endpoints, JWTs, RBAC, CORS, security headers, WAF) do not apply and are
-> marked Not Applicable rather than filled in. The controls that matter here are different
-> in kind: **an unreviewed write to a real backlog, a leaked API token, and a compromised
-> release.**
-
 ## Documents
 
 | Document | Description |

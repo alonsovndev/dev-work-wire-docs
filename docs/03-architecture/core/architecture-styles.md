@@ -29,13 +29,6 @@ and the provider adapter stay in a shared kernel. See
 [Where the conventional layers live](#where-the-conventional-layers-live).
 **Linked ADR:** [ADR-001 — Hexagonal Architecture with Vertical Feature Slices](../../04-decisions/adr-001-hexagonal-vertical-slices.md) (Proposed).
 
-> **Note on this evaluation.** The usual monolith / modular-monolith / microservices axis
-> does not apply to DevWorkWire: it is a locally installed CLI and stdio MCP server with
-> no hosted runtime, no network listener, and one user per process. The meaningful choice
-> is not *how many deployables* but *how the single deployable is internally structured*
-> — specifically, how strongly the tracker integration is isolated. The candidates below
-> replace the template's columns accordingly.
-
 The dominant constraint is **a single part-time developer** (see
 [Role Mapping](../../02-planning/role-mapping.md) and the single-developer bandwidth risk
 in the [Phased Roadmap](../../02-planning/phased-roadmap.md)) building toward a stated

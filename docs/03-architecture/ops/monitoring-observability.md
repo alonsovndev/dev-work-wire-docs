@@ -23,15 +23,6 @@ sidebar_position: 3
 - [9. Cost Management](#9-cost-management)
 - [Source References](#source-references)
 
-> **Scope note.** DevWorkWire runs on users' machines. **There is no telemetry, no
-> error-tracking service, no metrics backend, no log aggregation, and no dashboards — by
-> design.** Instrumenting it would mean exfiltrating developers' tracker activity from
-> their own machines, which is the wrong trade for a tool holding their Jira credentials.
-> The template's SLI targets, dashboards, alert routing, escalation, and observability
-> spend describe a hosted service and do not apply. What replaces them is **local
-> diagnosability**: making a failure legible to the person in front of the terminal, and
-> making a bug report reproducible.
-
 ## 1. Monitoring Strategy
 
 **The user is the monitor.** Every operation is initiated by a person or their agent, who is
@@ -84,7 +75,6 @@ post-deploy monitoring would carry elsewhere.
 ## 3. Correlation Instead of Distributed Tracing
 
 There are no services to trace across: one process, one call stack, one outbound host.
-Distributed tracing, trace propagation, and sampling strategy are all **Not Applicable**.
 
 What is needed instead is **correlation within a single run**, so a user reporting a problem
 can hand over one identifier that ties everything together:
@@ -102,7 +92,6 @@ the entire observability requirement.
 
 ## 4. What "Good" Looks Like Locally
 
-Replaces the template's SLI table and dashboards, which presuppose a service with traffic.
 These are qualities verified by tests and review, not measured in production:
 
 | Property | What it means | How it is verified |
@@ -118,9 +107,8 @@ These are qualities verified by tests and review, not measured in production:
 
 ## 5. Failure Surfacing Instead of Alerting
 
-There is nobody to page and no channel to route to. Alert rules, severities, escalation
-timers, and acknowledgement windows are **Not Applicable**. The equivalent is making the
-right thing impossible to miss at the moment it happens:
+There is nobody to page and no channel to route to. The equivalent is making the right
+thing impossible to miss at the moment it happens:
 
 | Condition | Surfaced as |
 | --------- | ----------- |

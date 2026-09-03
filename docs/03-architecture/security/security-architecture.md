@@ -29,14 +29,6 @@ sidebar_position: 1
 - [ADR and Diagram References](#adr-and-diagram-references)
 - [Source References](#source-references)
 
-> **Scope note.** DevWorkWire is a locally installed CLI and stdio MCP server. It has no
-> server, no listening port, no user accounts, no sessions, and no login flow. The
-> template's web-application sections — auth endpoints, JWT claims, RBAC roles, CORS,
-> security headers, WAF, VPC layout — describe controls this system does not have, and
-> are marked Not Applicable rather than filled with plausible-sounding fiction. The
-> controls that *do* matter here are different in kind: **an unreviewed write to a real
-> backlog, a leaked API token, and a compromised release**.
-
 ## Security Objectives and Scope
 
 **Objectives, in priority order:**
@@ -113,20 +105,14 @@ routable around by none ([Architecture Solution Design](../core/architecture-sol
 
 ## Authentication Strategy
 
-### Inbound: Not Applicable
+### Inbound: None
 
-| Template control | Status |
-| ---------------- | ------ |
-| `/api/v1/auth/login`, `/register`, `/refresh`, `/logout` | **Do not exist.** No HTTP server |
-| JWT access/refresh tokens, token claims, rotation | **Not applicable.** No sessions or issued tokens |
-| Password complexity, email verification, account lockout | **Not applicable.** No accounts |
-| Login rate limiting | **Not applicable.** No login |
-
-DevWorkWire has no users of its own. The CLI runs as the invoking OS user; the MCP server
-is a subprocess the harness spawns over stdio, with no network surface to authenticate
-against. **Authentication of the caller is the operating system's job**, and adding an
-inbound auth layer would provide no security benefit while creating credential material to
-manage.
+There is no HTTP server, no login, no accounts, no sessions, and no issued tokens, so there
+is nothing inbound to authenticate. DevWorkWire has no users of its own: the CLI runs as the
+invoking OS user, and the MCP server is a subprocess the harness spawns over stdio, with no
+network surface to authenticate against. **Authentication of the caller is the operating
+system's job**, and adding an inbound auth layer would provide no security benefit while
+creating credential material to manage.
 
 ### Outbound: The User's Own Jira Credentials
 
@@ -263,8 +249,6 @@ marked so rather than stretched.
 
 ## Network Posture
 
-Replaces the template's VPC/WAF/DDoS section, none of which applies.
-
 - **No inbound network surface whatsoever.** stdio MCP means the harness spawns a
   subprocess and communicates over pipes. There is no port, no bind address, no listener —
   and therefore no remote attack surface. This is the primary reason stdio-only was chosen
@@ -295,9 +279,6 @@ keychain integration is the correct long-term answer and is already noted as def
 arguments are world-readable in the process table and land in shell history.
 
 ## Local File and Process Hygiene
-
-Replaces the template's HTTP security-headers section, which does not apply — there are no
-HTTP responses to set headers on.
 
 | Concern | Control |
 | ------- | ------- |

@@ -40,12 +40,6 @@ sidebar_position: 2
 - [14. Deployment Impact Summary](#14-deployment-impact-summary)
 - [Source References](#source-references)
 
-> **Scope note.** The pipeline **publishes**; it does not deploy. There are no servers to
-> roll, no traffic to shift, no health checks to wait on, and no zero-downtime concern —
-> see [Deployment Architecture](./deployment-architecture.md). Sections 9–13 are reframed
-> accordingly rather than filled with hosted-deployment mechanics this project does not
-> have.
-
 ## 1. Branching Strategy
 
 The project uses a **two-branch model** (`dev` + `main`) with fork-based contributions. All
@@ -478,9 +472,8 @@ CI — and it should be listed as a release-checklist item rather than assumed a
 
 ## 10. Local State Store Migration Strategy
 
-Replaces the template's server-database migration section. There is no server database and
-no operator: the "DBA" is a developer running `dwire` who does not know the state store
-exists.
+There is no server database and no operator: the "DBA" is a developer running `dwire` who
+does not know the state store exists.
 
 - **Migrations run in-process on store open**, not from the pipeline. There is no migration
   command for a user to run and no deploy step to hook.

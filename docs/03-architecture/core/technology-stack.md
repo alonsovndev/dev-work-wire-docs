@@ -15,13 +15,6 @@ sidebar_position: 3
 Component-level technology choices with rationale. The `ADR` column links each choice to its
 record in [04-decisions](../../04-decisions/README.md); all are currently **Proposed**.
 
-> **Note on this matrix.** The template's rows (frontend framework, UI library, client
-> state, ORM, object storage, hosting platform, IaC) assume a hosted web application.
-> DevWorkWire is a locally installed CLI and stdio MCP server with no browser, no server,
-> and no cloud footprint, so those rows are replaced below with the components this system
-> actually has. Rows that genuinely do not apply are listed explicitly in
-> [Not Applicable](#not-applicable) rather than left as unfilled placeholders.
-
 ## Technology Stack Matrix
 
 | Component | Technology | Description / Rationale | ADR |
@@ -47,17 +40,10 @@ record in [04-decisions](../../04-decisions/README.md); all are currently **Prop
 | Logging | stdlib `logging`, **stderr only** | stdout is the MCP protocol channel — writing logs there would corrupt the JSON-RPC stream. Token and `Authorization` header values are redacted at every verbosity level. | ADR-008 |
 | CI/CD | GitHub Actions | Required for the OIDC identity behind PyPI Trusted Publishing — switching runners would forfeit it and reintroduce a stored PyPI token. Dependabot, CodeQL, and secret scanning are native. Free for public repos. See [CI/CD Pipeline](../ops/ci-cd-pipeline.md). | ADR-008 |
 
-### Not Applicable
-
-| Template row | Why it does not apply |
-| ------------ | --------------------- |
-| Frontend framework, UI library, client state | No browser UI. The interfaces are a terminal CLI and an MCP tool surface. |
-| ORM / data access | No relational *server* database, and no ORM over the local one. The five-table SQLite store is reached with raw SQL through stdlib `sqlite3`, behind the `StateStore` port — a schema this small does not repay a dependency and a mapping layer, and no domain type is ever persisted directly. See [Database Design](../database/database-design.md). |
-| Auth (as a system feature) | DevWorkWire authenticates *outbound* to Jira with the user's own token and has no users, accounts, sessions, roles, or login of its own. See [Security Architecture](../security/security-architecture.md). |
-| Object storage | No file assets are stored or served. |
-| Hosting / compute | Nothing is hosted. The deployment target is the user's machine. |
-| IaC | No infrastructure to provision. |
-| Observability platform | No hosted telemetry, by design — see [Observability](#observability). |
+There is no frontend, no backend service, no ORM, no object storage, no hosted
+infrastructure, and no telemetry platform. The interfaces are a terminal CLI and an MCP
+tool surface; the only persistence is the local SQLite store above, reached with raw SQL
+behind the `StateStore` port.
 
 ## Key Integration Patterns
 

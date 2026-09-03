@@ -4,14 +4,6 @@
 
 How DevWorkWire is built, verified, published, and diagnosed.
 
-> **Scope note.** DevWorkWire is **distributed, not deployed** — a Python package installed
-> by users onto their own machines. There is no cloud platform, no compute, no hosted
-> database, no infrastructure to provision, and no runtime telemetry. The conventional ops
-> concerns (platform selection, scaling, HA/failover, IaC, dashboards, alert routing,
-> on-call) do not apply and are marked Not Applicable rather than filled with
-> plausible-sounding fiction. The concerns that replace them are **channels, supported
-> platforms, release irreversibility, and local diagnosability**.
-
 ## Documents
 
 | Document | Description |

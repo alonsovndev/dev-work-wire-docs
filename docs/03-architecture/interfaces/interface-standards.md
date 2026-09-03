@@ -297,8 +297,7 @@ Confined entirely to `infrastructure/external/jira`. No Jira vocabulary crosses 
 ## Authentication and Authorization Patterns
 
 - **Inbound: none, by design.** stdio MCP has no network surface; the CLI runs as the
-  invoking user. There are no accounts, sessions, roles, tokens, or login flow. The
-  template's `/api/v1/auth/*` endpoints do not exist and are not planned.
+  invoking user. There are no accounts, sessions, roles, tokens, or login flow.
 - **Outbound: the user's own Jira credentials.** DevWorkWire holds no service account and
   no privilege of its own, so its blast radius is bounded to what the user could already do
   in Jira.
@@ -309,8 +308,8 @@ Confined entirely to `infrastructure/external/jira`. No Jira vocabulary crosses 
 
 ## Rate Limiting and Throttling
 
-- **Inbound: not applicable.** One local user, one process; there is nothing to throttle
-  and no attacker to throttle it against.
+- **Inbound:** nothing to throttle — one local user, one process, and no attacker to
+  throttle it against.
 - **Outbound: Jira's limits are the constraint.** The adapter is a well-behaved client:
   honors `Retry-After`, backs off with jitter, bounds attempts, and surfaces
   `JIRA_RATE_LIMITED` with a message telling the user what to do rather than looping

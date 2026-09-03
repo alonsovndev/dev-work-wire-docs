@@ -27,15 +27,6 @@ sidebar_position: 1
 - [Related ADRs](#related-adrs)
 - [Source References](#source-references)
 
-> **Scope note.** DevWorkWire is **not deployed** in the conventional sense — it is
-> *distributed*. There is no cloud platform, no compute to size, no VPC, no load balancer,
-> no CDN, no managed database, no container registry, and no infrastructure to provision.
-> The template's platform-selection, networking, scaling, HA/failover, and IaC sections
-> describe things this system does not have; they are marked Not Applicable rather than
-> filled with plausible-sounding fiction. What replaces them is the set of concerns a
-> distributed CLI actually has: **channels, supported platforms, version adoption, and the
-> fact that a shipped release cannot be recalled.**
-
 ## Scope and NFR Alignment
 
 | NFR | How this document addresses it |
@@ -75,9 +66,7 @@ upgrades the server.
 | Production environment | Every user's machine, running whatever version they installed |
 | Rollout / canary | **Does not exist.** Users upgrade on their own schedule |
 | Rollback | The user installs a previous version. The maintainer can only yank and publish a fix |
-| Zero-downtime deploy | **Not applicable.** Nothing is running to interrupt |
-| Health check | **Not applicable.** No process to probe. `dwire config check` is the user-facing equivalent |
-| Scaling | **Not applicable** |
+| Health check | No process to probe. `dwire config check` is the user-facing equivalent |
 
 **The load-bearing consequence:** a published release cannot be recalled. Yanking removes a
 version from *new* installs; every already-installed copy keeps running. This is why the
@@ -152,9 +141,8 @@ before it ships.
 
 ## Data Durability and Recovery
 
-The template's RPO/RTO table does not apply — there is no database to back up and no
-downtime to recover from. The equivalent question is *what happens when a user loses their
-local state*, and the design answers it deliberately.
+There is no database to back up and no downtime to recover from. The question that matters
+is what happens when a user loses their local state:
 
 | Resource | Loss scenario | Impact | Recovery |
 | -------- | ------------- | ------ | -------- |
@@ -197,11 +185,8 @@ Effectively zero, and worth stating because it removes an entire category of con
 
 ## Infrastructure as Code
 
-**Not applicable — there is no infrastructure to provision.** No Terraform, no Pulumi, no
-CDK, no state backend, no `plan`/`apply` workflow.
-
-The nearest equivalents, and they should be treated with the same versioned-in-repo
-discipline:
+There is no infrastructure to provision, so no Terraform and no `plan`/`apply` workflow.
+What still needs versioned-in-repo discipline:
 
 - GitHub Actions workflow definitions (`.github/workflows/`)
 - Branch protection and repository settings

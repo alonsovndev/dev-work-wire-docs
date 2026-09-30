@@ -25,9 +25,16 @@ records the integration decision.
 | `dwire rebind-import-story FOLDER OLD_ID NEW_ID` | Keep a key after a story ID rename | `story_id`, `new_story_id` |
 | `dwire retire-import-story FOLDER STORY_ID` | Remove a missing story from local state | `story_id`, `new_story_id` (`null`) |
 
-Run `dwire` without a command for the interactive menu. Direct commands support
-`dwire --format json COMMAND ...`; the menu is text-only. Use each command's
-`--help` for the full argument list.
+Run `dwire` without a command for the interactive menu. Use the up/down arrows to
+navigate, Enter to select, number shortcuts to choose actions, `?` for help, and Esc
+to go back or exit. Direct commands support `dwire --format json COMMAND ...`; the
+menu is text-only. See the [CLI reference](https://github.com/alonsovndev/dev-work-wire/blob/dev/docs/guides/cli-reference.md)
+for launch options and command examples.
+
+AI tools that support Agent Skills and can run local shell commands can use the same
+CLI through the portable skill. See the [AI agent skill setup guide](https://github.com/alonsovndev/dev-work-wire/blob/dev/docs/guides/ai-agent-skill.md)
+for installation and configuration steps. Use each command's `--help` for the full
+argument list.
 
 ## JSON result
 

@@ -24,7 +24,8 @@ record in [04-decisions](../../04-decisions/README.md); all are currently **Prop
 | Language / runtime | Python 3.11+ | Floor chosen for stdlib `tomllib`, modern typing, and `ExceptionGroup`, while staying installable on every current OS and Homebrew Python. Below 3.11 costs stdlib features; above it narrows reach for no MVP benefit. | ADR-002 |
 | Package layout | `src/` layout, one package `devworkwire` | Prevents accidentally testing against the working tree instead of the installed package — the failure mode that would let a broken `pip install` reach PyPI despite green tests ([NFR-009-01](../../01-requirements/f-009-packaging-distribution.md)). | ADR-002 |
 | CLI framework | Typer | Type-hint-driven commands, generated `--help`, and a console-script entry point that gives `dwire` for free ([FR-009-01](../../01-requirements/f-009-packaging-distribution.md)). `presentation/cli` hosts the Typer app and the shared rendering conventions; each slice contributes its own commands from `features/*/presentation`, registered at the composition root. | ADR-002 |
-| Interactive prompts | InquirerPy | Supplies the guided menu and the yes/no confirm prompt for [F-003](../../01-requirements/f-003-cli-dwire-flow.md). The prompt is presentation only — the gate it triggers lives in `WorkItemService`. | ADR-002 |
+| Interactive menu | prompt_toolkit | Provides the custom terminal menu for [F-003](../../01-requirements/f-003-cli-dwire-flow.md), including keyboard navigation and responsive rendering. | ADR-002 |
+| Interactive prompts | InquirerPy | Supplies yes/no confirmation prompts for [F-003](../../01-requirements/f-003-cli-dwire-flow.md). The prompt is presentation only — the gate it triggers lives in `WorkItemService`. | ADR-002 |
 | Terminal rendering | Rich (via Typer) | Tables and wrapping for preview output readable at 80 columns ([NFR-003-01](../../01-requirements/f-003-cli-dwire-flow.md)). Must not signal state by color alone — [NFR-X06](../../01-requirements/README.md#cross-cutting-quality-baseline) requires text prefixes on errors and warnings. | ADR-002 |
 | MCP server | Official `mcp` Python SDK, **stdio transport only** | The reference protocol implementation, so [F-004](../../01-requirements/f-004-mcp-tool-surface.md) works with any MCP-compatible harness with no per-harness work — the "own MCP server, any harness" differentiator. stdio means the harness spawns it as a subprocess: no listening port, no inbound auth surface. Phase 1. | ADR-004 |
 | Tracker client | `httpx` against Jira Cloud REST API v3 | Direct REST keeps the adapter thin, fully mockable via `httpx`'s transport layer (supporting [NFR-X03](../../01-requirements/README.md#cross-cutting-quality-baseline)), and free of a wrapper library's model and release cadence. Leaves an async path open if a future MCP transport needs one. | ADR-003 |
@@ -63,10 +64,10 @@ and marshals; it holds no business rules, which is what keeps the CLI and MCP be
 identical as required by
 [FR-004-01](../../01-requirements/f-004-mcp-tool-surface.md).
 
-The two differ only in how confirmation is expressed: the CLI blocks on an InquirerPy
-yes/no prompt, while `import.commit` takes an explicit confirmation argument plus a
-reference to the preview it is confirming. Both resolve to the same gate call. Ungated
-write paths do not exist to be called
+The interactive CLI menu uses prompt_toolkit for rendering and navigation. CLI write
+confirmation uses an InquirerPy yes/no prompt, while `import.commit` takes an explicit
+confirmation argument plus a reference to the preview it is confirming. Both resolve to
+the same gate call. Ungated write paths do not exist to be called
 ([FR-004-03](../../01-requirements/f-004-mcp-tool-surface.md)).
 
 ### Core ↔ Jira

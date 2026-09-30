@@ -1,9 +1,13 @@
 # ADR-004: MCP Server on stdio with a Preview-Handle Confirm Gate
 
-- **Status**: Proposed
+- **Status**: Superseded by [ADR-011](./adr-011-cli-first-agent-integration.md)
 - **Date**: 2026-09-02
 
 ## Context
+
+This records the earlier MCP proposal. The active AI integration decision is
+[ADR-011](./adr-011-cli-first-agent-integration.md); the preview-handle gate
+below is not implemented or planned for the first skill.
 
 DevWorkWire's differentiator is that an AI agent gets **the same trust gate as a human**:
 there is no separate, looser path for agents

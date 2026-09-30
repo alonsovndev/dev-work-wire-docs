@@ -4,7 +4,7 @@ sidebar_position: 0
 
 # Introduction
 
-Welcome to the documentation for **DevWorkWire** — an open-source tool that loads an already-refined Epic → Story → Acceptance Criteria structure into a project management platform (Jira first), validated and duplicate-free, by hand through the `dwire` CLI or through DevWorkWire's own MCP server.
+Welcome to the documentation for **DevWorkWire** — a local CLI that loads an already-refined Epic → Story → Acceptance Criteria structure into Jira. Developers use `dwire` directly; terminal-capable AI agents use the same CLI through a portable skill. MCP is deferred. Current import resumption depends on its local state file.
 
 This site contains all project documentation: context, requirements, planning, architecture, decisions, and prototype references.
 

@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Interface Design Standards
 
+> **Design status:** This page includes earlier planning assumptions. The [current CLI contract](interface-contract.md) and [ADR-011](../../04-decisions/adr-011-cli-first-agent-integration.md) govern the CLI-first agent integration; MCP, SQLite preview handles, and server-side confirmation described below are not shipped.
+
 | Attribute   | Value       |
 | ----------- | ----------- |
 | **Project** | DevWorkWire |
@@ -55,7 +57,7 @@ adapters over one `WorkItemService`
   test.
 - **Naming:** dotted `namespace.verb`, lowercase. Namespaces are `import`, `workitem`, and
   `progress`. This matches the `import.preview` / `import.commit` names already fixed in
-  the [Glossary](../../00-context/glossary.md#technical-terms).
+  the [Glossary](../../00-context/glossary.md#cli-and-agent-terms).
 - **Field naming:** `snake_case` for all tool arguments and result fields. Pydantic v2
   generates the tool JSON schemas directly from Python field names, so no alias layer
   exists to drift out of sync with the code.
@@ -69,7 +71,7 @@ adapters over one `WorkItemService`
 ### Trust Tier Classification
 
 Every tool is exactly one of two kinds, per the
-[Glossary](../../00-context/glossary.md#technical-terms):
+[Glossary](../../00-context/glossary.md#cli-and-agent-terms):
 
 | Tier                   | Meaning                      | Tools                                                                  | Gate                           |
 | ---------------------- | ---------------------------- | ---------------------------------------------------------------------- | ------------------------------ |

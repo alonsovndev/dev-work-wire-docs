@@ -2,80 +2,35 @@
 sidebar_position: 2
 ---
 
-# User Personas
+# User personas
 
-**Purpose:** Define core user personas aligned to the DevWorkWire overview to ensure requirements and workflows serve the target audiences.
-
-> **Note:** the names, experience levels, and quotes below are illustrative — DevWorkWire has not yet run persona research or interviews. Treat the roles and goals as grounded in the product plan, and the rest as assumptions to validate later.
-
----
+These are illustrative roles, not findings from user interviews. They guide
+CLI and skill design; individual preferences remain assumptions to validate.
 
 ## Persona 1: Solo/Small-Team Developer (Primary)
 
-**Name:** Maya
-**Role:** Developer/tech lead who plans work in Markdown and runs `dwire` from the terminal
-**Experience:** 5+ years professional development, comfortable with CLI tools, moderate familiarity with project management platforms like Jira
-
-### Primary Goals
-
-- Turn an already-refined Epic/Story/AC document into tickets in their project management platform without hand-creating each one in its UI.
-- Re-run the same load after editing the source document and trust it updates in place instead of creating duplicates.
-
-### Pain Points
-
-- Manual copy-paste into their project management platform is slow and error-prone — easy to miss a parent/child link or an Acceptance Criterion.
-- No safe way today to re-import an updated plan without risking duplicate Epics and Stories.
-
-### Needs & Expectations
-
-- A clear preview of exactly what will be created/updated before anything is written to the tracker.
-- A guided CLI flow (validate → preview → confirm) plus search/select and insert-by-id for everyday backlog work.
-
-### Success Indicators
-
-- A refined plan document becomes a correct hierarchy in the project management platform in one confirmed pass, with zero duplicate tickets on re-run.
-
-### Quote
-
-> "I already did the thinking in my planning doc — I just want it in my tracker exactly as I wrote it, without babysitting the import."
-
----
+**Maya** prepares an Epic and Stories in Markdown, runs `dwire` in a terminal,
+and wants a clear preview before importing. She also fetches, lists, and
+creates individual Jira issues. A re-run with its local state file should skip
+items already uploaded. Updating those items in Jira is a future capability;
+current re-runs do not do it.
 
 ## Persona 2: Developer Directing an AI Agent (Secondary)
 
-**Name:** Idris
-**Role:** Developer who has an AI coding agent (Claude Code, OpenCode, Copilot, etc.) load and progress work on their behalf via DevWorkWire's MCP server
-**Experience:** 3+ years professional development, regularly delegates coding and backlog tasks to an AI agent
+**Idris** approves a bounded task for a terminal-capable coding agent. The
+agent uses the installed `dwire` CLI and the portable skill to read or create
+work items. Idris wants the agent to inspect a folder preview, stay within the
+approved task, report created keys, and stop after uncertain or partial
+results. The first skill does not perform comments, transitions, or PR
+references because those commands do not exist yet.
 
-### Primary Goals
+The CLI cannot verify the agent's task approval. Direct create commands write
+immediately; `import-folder --yes` writes without a terminal prompt after its
+local preview. Idris's agent host controls shell permission, and the skill
+supplies workflow guidance. See
+[ADR-011](../04-decisions/adr-011-cli-first-agent-integration.md).
 
-- Let the AI agent load a refined work structure and report progress (comments, status transitions) without writing custom integration code for their tracker.
-- Stay in control of anything externally visible the agent does, even when it's operating autonomously.
+## Source references
 
-### Pain Points
-
-- Ad-hoc scripts or a generic project-management MCP integration give an agent no validation, preview, or confirm step before it writes to the tracker.
-- Risk of an agent creating duplicate comments or tickets on retry, with no idempotency safety net.
-
-### Needs & Expectations
-
-- The same `import.preview` → `import.commit` confirm gate the CLI uses, applied to the agent's MCP calls — no separate, looser path.
-- Idempotency hints on write-back actions (comments, transitions) so agent retries don't create duplicate noise.
-
-### Success Indicators
-
-- The agent can load and report progress end-to-end, but every externally-visible write still passes through a confirm step the developer trusts.
-
-### Quote
-
-> "I want my agent to move the backlog forward, not to have silent write access to our tracker."
-
----
-
-## Source References
-
-- [Project Overview](./overview.md)
-
----
-
-**Last Updated**: 2026-08-28
+- [Project overview](./overview.md)
+- [CLI agent requirements](../01-requirements/f-004-mcp-tool-surface.md)

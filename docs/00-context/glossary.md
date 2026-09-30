@@ -4,59 +4,45 @@ sidebar_position: 3
 
 # Glossary
 
-This document defines key terms used throughout the requirements and architecture documentation. Keep it current: whenever a new domain term appears in any document, add it here first.
+Terms used in the current CLI-first documentation.
 
-> Organize terms into sections that match your domain. The sections below are starting points — add, rename, or remove them as needed. Each entry follows the format: **Term** followed by a one-to-three sentence definition precise enough for engineers, designers, and stakeholders to share one meaning.
+## Work items
 
-## User Roles
+**Epic**: The top-level Jira issue described by `epic.md`.
 
-**[Role Name 1]**
-[Definition: who holds this role, what permissions they have, and how the role is granted.]
+**Story**: A Jira Story linked to an Epic and described by a stable ID in
+`stories.md`.
 
-**[Role Name 2]**
-[Definition: who holds this role, what permissions they have, and how the role is granted.]
+**Acceptance criteria**: Conditions written in the Story Markdown and sent as
+part of the Story description.
 
-## Domain Entities
+**WorkItemProvider**: The core port implemented by the Jira adapter for the
+supported create and read operations.
 
-**Epic**
-The top-level unit of work in a loaded structure, containing one or more Stories. Sourced from the already-refined input document and mapped to the tracking provider's native Epic type (e.g. Jira Epic).
+## CLI and agent terms
 
-**Story**
-A User Story belonging to an Epic, carrying its own Acceptance Criteria. Mapped to the provider's native Story/Task type.
+**`dwire`**: The installed DevWorkWire command. Direct commands can return
+human-readable text or one JSON result.
 
-**Acceptance Criteria (AC)**
-The testable conditions attached to a Story that define when it is done. Validated for presence and consistency before a load is written.
+**Preview**: Read-only local parsing and validation of a source folder, with
+create/skip information from its resume file. It does not search Jira for all
+possible duplicates.
 
-**WorkItemService**
-The core application service shared by the CLI and the MCP server. Implements the loading, context-retrieval, and progress write-back logic once, so the CLI and MCP expose the same behavior rather than diverging.
+**Import state**: The `.devworkwire-import.json` file beside source Markdown.
+It records created Jira keys and pending attempts so a folder import can
+resume.
 
-**WorkItemProvider**
-The port every tracking-system adapter implements (Jira in Phase 1; Linear and Azure DevOps later). `WorkItemService` depends only on this port, not on any specific provider.
+**Agent skill**: The portable `SKILL.md` instructions that teach a
+terminal-capable agent how to use `dwire`. It adds no Jira capability or CLI
+approval enforcement.
 
-## Lifecycle States
+**Approved task**: The user's instruction authorizing an agent to perform
+specific work. The agent must stay within its scope; the CLI cannot inspect
+or verify that conversation.
 
-**[State 1]**
-[Definition: what triggers this state, what is allowed while in it, and how it ends.]
+**Partial import**: An import that created at least one item in the current
+invocation but ended with an error. The caller must inspect created keys and
+Jira before retrying.
 
-**[State 2]**
-[Definition: what triggers this state, what is allowed while in it, and how it ends.]
-
-## Business Concepts
-
-**[Concept 1]**
-[Definition: the business meaning, including any limits, quotas, or rules attached to it.]
-
-## Technical Terms
-
-**dwire**
-The command-line entry point for DevWorkWire's interactive CLI, published via the `devworkwire` PyPI package.
-
-**import.preview / import.commit**
-The two-step confirm gate every load goes through: `import.preview` validates the structure and shows exactly what will be written, without writing anything; `import.commit` executes it only after explicit confirmation. Applies identically whether triggered from the CLI or the MCP server.
-
-**Trust Tier**
-The classification of an action as either read-only (show/search/list — fully autonomous) or externally visible (comment, transition, import commit — confirm-before-execute by default). Determines whether an action needs a confirm step.
-
----
-
-**Last Updated**: 2026-08-28
+**MCP**: A possible future adapter for clients that cannot run local commands
+or require native tool discovery. No MCP server is currently shipped.

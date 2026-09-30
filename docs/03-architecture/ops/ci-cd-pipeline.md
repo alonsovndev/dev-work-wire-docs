@@ -4,6 +4,8 @@ sidebar_position: 2
 
 # CI/CD Pipeline Architecture
 
+> **Design status:** This page includes earlier planning assumptions. The [current CLI contract](../interfaces/interface-contract.md) and [ADR-011](../../04-decisions/adr-011-cli-first-agent-integration.md) govern the CLI-first agent integration; MCP, SQLite preview handles, and server-side confirmation described below are not shipped.
+
 | Attribute   | Value       |
 | ----------- | ----------- |
 | **Project** | DevWorkWire |
@@ -353,7 +355,7 @@ Triggered on every PR targeting `dev`. **Publishes nothing.**
 | `macos-latest`  | 3.11, 3.12, 3.13 |
 
 Windows is not tested and not supported — see
-[Deployment Architecture](./deployment-architecture.md#supported-platforms). Testing the
+[Deployment Architecture](./deployment-architecture.md#runtime-environment). Testing the
 3.11 floor and the current release catches accidental use of a newer-only feature before
 it ships.
 

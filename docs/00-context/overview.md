@@ -1,83 +1,69 @@
----
-sidebar_position: 1
----
+# DevWorkWire overview
 
-# Overview
+**DevWorkWire** is a locally installed CLI for loading an already refined Epic
+and its Stories into Jira. It reads `epic.md` and optional `stories.md`, validates
+and previews the folder, then creates missing Jira issues. The same `dwire`
+executable is usable by a developer in a terminal or by a terminal-capable AI
+agent through the portable skill.
 
-**Tagline**: _"Load an already-defined work structure into your backlog, validated and duplicate-free — by hand or with your AI agent driving."_
+## Who it serves
 
-## Core Concept
+- A developer working directly in the terminal can inspect, create, and
+  import work items without manually entering each ticket in Jira.
+- A developer directing an AI agent can authorize a task and have the agent
+  use the installed CLI. The agent skill explains command use and recovery;
+  the CLI does not know what the developer approved in the conversation.
 
-DevWorkWire is an open-source tool that takes an already-defined, refined structure of work — Epics with their User Stories and Acceptance Criteria — and loads it, validated and reliably, into a project-tracking system (Jira first). It does not interpret free-form or ambiguous text; the structure must already be complete when it arrives (for example, a folder holding an `epic.md` and a `stories.md` file with the Epic → Story → Acceptance Criteria hierarchy already worked out). DevWorkWire's job is to validate that structure, preview exactly what will be written, and apply it without creating duplicates on re-run — usable directly by a developer through the interactive `dwire` CLI, or by an AI agent through DevWorkWire's own MCP server.
+## Current behavior
 
-### Vision Statement
+- Direct commands fetch or create individual Epics and Stories, list an Epic's
+  Stories, and list open work assigned to a user.
+- `preview-folder` validates local Markdown without Jira writes.
+- `import-folder` validates and previews locally. It prompts in an interactive
+  terminal or requires `--yes` in a non-interactive run before creating missing
+  items. Direct create commands write immediately.
+- A `.devworkwire-import.json` file beside the Markdown records created keys.
+  Re-running with that file skips created items. Changed uploaded items are not
+  updated, and a folder without its file cannot be matched against earlier
+  Jira uploads automatically.
+- Direct commands offer `--format json` for scripts and agents. Human-readable
+  output remains the default.
 
-DevWorkWire becomes the trusted, provider-agnostic bridge between refined planning documents and project trackers — for a developer working by hand, or their AI agent working on their behalf — without manual ticket wrangling or duplicate-creation risk.
+## Future direction
 
----
+Search, updates, richer work queries, comments, status transitions, PR
+references, and additional tracker providers are future capabilities. MCP is
+deferred until a concrete AI client needs an interface beyond the local CLI.
+The earlier MCP preview-handle design is retained as a superseded decision,
+not as current behavior.
 
-## Problem Statement
+See the [feature requirements](../01-requirements/README.md), [current CLI
+contract](../03-architecture/interfaces/interface-contract.md), and
+[CLI-first decision](../04-decisions/adr-011-cli-first-agent-integration.md).
 
-### The Challenge
+## Core concept
 
-Pain points the target users experience today:
+The input is a prepared Epic/Story folder. DevWorkWire validates its structure
+and creates Jira issues; it does not refine ambiguous ideas into work items.
 
-- **Manual copy-paste is slow and error-prone**: turning a refined Epic/Story/AC document into tickets today means hand-creating each item in the project management platform's UI — tedious, inconsistent field usage, and easy to miss a parent/child link or an Acceptance Criterion.
-- **Re-imports create duplicate tickets**: there is no safe way to re-run a load after the source folder changes, so teams either avoid updating already-imported work or end up with duplicate Epics and Stories in the backlog.
+## The solution
 
-### The Solution
+A local preview shows what the current importer will create or skip. The
+resume file records uploaded keys so a re-run can continue without repeating
+known creates.
 
-How DevWorkWire addresses those pain points:
+## Key differentiators
 
-- **Loading engine (validate → preview → confirm)**: DevWorkWire validates the structure's consistency (counts, parent/child links, required fields), shows a clear preview of exactly what will be written, and requires confirmation before it touches the tracker — solving the manual, error-prone copy-paste problem.
-- **Dedup on re-run**: re-running the same source folder is treated as an update pass, matched by provider key or a stored import-source reference, so re-imports never create duplicate tickets.
+The same installed CLI serves people and terminal-capable agents. The agent
+skill documents safe use of the commands and their recovery paths.
 
----
+## Technical goals
 
-## Target Audience
+Keep Jira access behind the provider port, expose stable CLI JSON for scripts,
+and make import outcomes explicit. Future write features need their own retry
+and recovery designs.
 
-### Primary Audience
+## Business goals
 
-- **Solo/small-team developer**
-  - Loads a refined Epic/Story/AC document into a project management platform (Jira first) and keeps it in sync from the terminal via the `dwire` CLI, without hand-creating tickets or risking duplicates on re-run.
-
-### Secondary Audience
-
-- **Developer directing an AI coding agent**
-  - Lets their AI agent (Claude Code, OpenCode, Copilot, etc.) load work items and report progress through DevWorkWire's MCP server, while staying in the loop via the same confirm-before-execute gate the CLI uses — no looser, agent-only code path.
-
-> Link each audience to a full persona in [User Personas](./user-personas.md).
-
----
-
-## High-Level Goals
-
-### Professional Impact Goals
-
-- Eliminate manual, error-prone ticket creation for developers turning refined plans into their project management platform's backlog.
-- Give developers and their AI agents a trustworthy way to keep their project management platform in sync with planning documents, without duplicate-creation risk.
-
-### Technical Goals
-
-- Hexagonal architecture: a `WorkItemProvider` port so Jira ships first (Phase 1) and Linear/Azure DevOps can be added later (Phase 3) with no changes to the core service, CLI, or MCP tool definitions.
-- One core service (`WorkItemService`) shared by the CLI and the MCP server — no divergent logic between "human mode" and "agent mode".
-- Confirm-before-execute gate on every externally-visible action (comment, transition, import commit) for both front doors.
-- Proper packaging from Phase 1 (`pyproject.toml`, versioning, changelog) as the foundation every later distribution channel builds on.
-- Security-by-design: no bypass path for autonomous agents to skip the confirm gate in the open-source core.
-
-### Business Goals
-
-- Broad, frictionless distribution: PyPI as the baseline (`pip install devworkwire`), pipx documented as the recommended install path, and a self-maintained Homebrew tap (`alonsovndev/devworkwire`) — lowering the bar to try the tool, ahead of Homebrew core or standalone binaries, which stay deferred until there's real traction.
-
----
-
-## Key Differentiators
-
-### What Makes This Project Stand Out
-
-- **Same trust gate for humans and agents**: the CLI and the MCP server share the same `import.preview` → `import.commit` confirm gate on externally-visible actions — there is no separate, looser code path for AI agents to bypass.
-- **Own MCP server, any harness**: built directly against its target platform's REST API (Jira first) rather than a vendor agent SDK, so DevWorkWire's MCP server works with any MCP-compatible harness (Claude, OpenCode, Copilot, Antigravity, and future entrants) with no per-harness integration work.
-
----
-
-**Last Updated**: 2026-08-28
+Reduce manual Jira ticket entry while retaining a clear local record of what
+the CLI created.

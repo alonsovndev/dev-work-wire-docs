@@ -1,5 +1,7 @@
 # Database Design
 
+> **Design status:** This page includes earlier planning assumptions. The [current CLI contract](../interfaces/interface-contract.md) and [ADR-011](../../04-decisions/adr-011-cli-first-agent-integration.md) govern the CLI-first agent integration; MCP, SQLite preview handles, and server-side confirmation described below are not shipped.
+
 | Attribute        | Value                       |
 | ---------------- | --------------------------- |
 | **Project**      | DevWorkWire                 |

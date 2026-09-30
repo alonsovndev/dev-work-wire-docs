@@ -1,9 +1,13 @@
 # ADR-005: Local SQLite State Store as a Rebuildable Cache
 
-- **Status**: Proposed
+- **Status**: Deferred by [ADR-011](./adr-011-cli-first-agent-integration.md)
 - **Date**: 2026-09-02
 
 ## Context
+
+This is an unimplemented proposal from the earlier MCP design. Current folder
+imports use a `.devworkwire-import.json` resume file beside the Markdown; the
+CLI-first integration does not require SQLite preview handles.
 
 Jira is the system of record for every work item; DevWorkWire owns none of that data. But
 three requirements need state that has nowhere else to live:

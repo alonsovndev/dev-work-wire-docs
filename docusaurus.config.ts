@@ -5,8 +5,9 @@ import type * as Preset from "@docusaurus/preset-classic";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: "Template Docs",
-  tagline: "A documentation template for your projects.",
+  title: "DevWorkWire",
+  tagline:
+    "Load an already-defined work structure into your backlog, validated and duplicate-free — by hand or with your AI agent driving.",
   favicon: "img/favicon.svg",
 
   future: {
@@ -23,7 +24,7 @@ const config: Config = {
   // GitHub Pages deployment config.
   // Replace with your GitHub org/user name and repository name.
   organizationName: "alonsovndev",
-  projectName: "template-docs",
+  projectName: "dev-work-wire-docs",
 
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
@@ -36,6 +37,14 @@ const config: Config = {
     locales: ["en"],
   },
 
+  // Renders ```mermaid fences as diagrams. Both keys are required — the flag
+  // alone does nothing without the theme registered.
+  markdown: {
+    mermaid: true,
+  },
+
+  themes: ["@docusaurus/theme-mermaid"],
+
   presets: [
     [
       "classic",
@@ -43,7 +52,7 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           // Point this to your repository to enable the "Edit this page" links.
-          editUrl: "https://github.com/alonsovndev/template-docs/edit/main/",
+          editUrl: "https://github.com/alonsovndev/dev-work-wire-docs/edit/main/",
         },
         blog: false,
         theme: {
@@ -58,9 +67,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: "Template Docs",
+      title: "DevWorkWire",
       logo: {
-        alt: "Template Docs Logo",
+        alt: "DevWorkWire Logo",
         src: "img/logo.svg",
       },
       items: [
@@ -71,7 +80,7 @@ const config: Config = {
           label: "Documentation",
         },
         {
-          href: "https://github.com/alonsovndev/template-docs",
+          href: "https://github.com/alonsovndev/dev-work-wire-docs",
           label: "GitHub",
           position: "right",
         },
@@ -98,7 +107,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/alonsovndev/template-docs",
+              href: "https://github.com/alonsovndev/dev-work-wire-docs",
             },
           ],
         },
@@ -108,6 +117,9 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+    },
+    mermaid: {
+      theme: { light: "neutral", dark: "dark" },
     },
   } satisfies Preset.ThemeConfig,
 };

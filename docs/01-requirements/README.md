@@ -1,16 +1,19 @@
 # Requirements
 
-| Attribute     | Value          |
-| ------------- | -------------- |
-| **Project**   | [Project Name] |
-| **Version**   | 0.1            |
-| **Status**    | Draft          |
-| **Readiness** | Draft          |
-| **Owner**     | Product Owner  |
+| Attribute     | Value         |
+| ------------- | ------------- |
+| **Project**   | DevWorkWire   |
+| **Version**   | 0.1           |
+| **Status**    | Clarified     |
+| **Readiness** | Clarified     |
+| **Owner**     | Product Owner |
 
 ## Purpose
 
-Single source of truth for requirements organized by feature slices.
+Requirements organized by feature slices. Some files retain earlier target
+designs that differ from the shipped CLI; their implementation notes identify
+those gaps. [ADR-011](../04-decisions/adr-011-cli-first-agent-integration.md)
+is the active decision for AI integration.
 Detailed requirements are maintained in dedicated feature files — copy
 [f-000-feature-template.md](./f-000-feature-template.md) for each new feature.
 
@@ -18,10 +21,17 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ## Feature Map
 
-| Feature ID | Feature Name   | Outcome                                 | Priority | Status | Owner         | Details |
-| ---------- | -------------- | --------------------------------------- | -------- | ------ | ------------- | ------- |
-| F-001      | [Feature name] | [One-line outcome the feature delivers] | Must     | Draft  | Product Owner | F-001   |
-| F-002      | [Feature name] | [One-line outcome the feature delivers] | Should   | Draft  | Product Owner | F-002   |
+| Feature ID | Feature Name                 | Outcome                                                                                | Priority | Status | Owner         | Details                                     |
+| ---------- | ---------------------------- | -------------------------------------------------------------------------------------- | -------- | ------ | ------------- | ------------------------------------------- |
+| F-001      | Validate → Preview → Commit  | Validates and previews a folder, then creates missing items. Update semantics remain planned. | Must | Partial | Product Owner | [F-001](./f-001-validate-preview-commit.md) |
+| F-002      | Dedup on Re-Run              | Uses a local resume file to skip created items; Jira-side matching and updates remain planned. | Must | Partial | Product Owner | [F-002](./f-002-dedup-on-rerun.md) |
+| F-003      | CLI (dwire) Interactive Flow | Provides a menu and direct commands; search and insert remain planned. | Must | Partial | Product Owner | [F-003](./f-003-cli-dwire-flow.md) |
+| F-004      | CLI Access for AI Agents     | Uses JSON direct commands and a portable skill for existing workflows. | Should | Implemented | Product Owner | [F-004](./f-004-mcp-tool-surface.md) |
+| F-005      | Individual Work Item CRUD    | Reads and creates individual Epics/Stories; update remains planned. | Should | Partial | Product Owner | [F-005](./f-005-work-item-crud.md) |
+| F-006      | CLI Work-Context Query       | Plans a richer query by status and assignee. | Should | Planned | Product Owner | [F-006](./f-006-mcp-work-context-query.md) |
+| F-007      | Progress Reporting           | Plans comments, status transitions, and PR references through CLI commands. | Should | Planned | Product Owner | [F-007](./f-007-progress-reporting.md) |
+| F-008      | Provider Authentication & Configuration | Configures Jira access for the CLI. | Must | Partial | Product Owner | [F-008](./f-008-provider-auth-configuration.md) |
+| F-009      | Packaging & Distribution     | Ships DevWorkWire as an installable, versioned PyPI/pipx/Homebrew package.             | Must     | Clarified | Product Owner | [F-009](./f-009-packaging-distribution.md)  |
 
 ---
 
@@ -36,9 +46,16 @@ Detailed requirements are maintained in dedicated feature files — copy
 
 ### Current Feature Status
 
-[List the current status of each feature and the next step, e.g.:]
+The feature map distinguishes implemented, partial, and planned behavior.
+Existing requirement tables with `Clarified` rows describe a target design,
+not proof that every row has shipped. Check the implementation note in each
+feature and the [current CLI contract](../03-architecture/interfaces/interface-contract.md)
+before using a command.
 
-All features are currently in **Draft** status.
+Three cross-cutting NFRs in the [Quality Baseline](#cross-cutting-quality-baseline)
+below (`NFR-X04` Performance, `NFR-X05` Scalability, `NFR-X07` Delivery Feasibility)
+remain **Draft** — their targets are still `TBD` and not yet measurable, so they don't
+qualify as Clarified until a concrete target is set.
 
 **Transition Path**: Draft → Review Pending → Clarified → Ready for Implementation
 
@@ -50,13 +67,13 @@ All features are currently in **Draft** status.
 
 | ID      | Quality Area         | Requirement                                                          | Metric / Target                                                                 | Priority | Owner (DRI)   | Status |
 | ------- | -------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | ------------- | ------ |
-| NFR-X01 | Security             | [Security requirement, e.g. adherence to a known security baseline.] | [Measurable target, e.g. checklist satisfied, hashing and rate limiting rules.] | Must     | Tech Lead     | Draft  |
-| NFR-X02 | Privacy              | [Privacy requirement, e.g. deletion and archival support.]           | [Measurable target, e.g. deletion SLA.]                                         | Must     | Tech Lead     | Draft  |
-| NFR-X03 | Testability          | [Test coverage requirement for core logic.]                          | [Coverage threshold, e.g. 70% of core application logic.]                       | Must     | Backend Lead  | Draft  |
-| NFR-X04 | Performance          | [Responsiveness requirement under expected load.]                    | [Load definition + latency target.]                                             | Should   | Tech Lead     | Draft  |
-| NFR-X05 | Scalability          | [Capacity requirement without data loss or degradation.]             | [Concrete capacity numbers.]                                                    | Should   | Tech Lead     | Draft  |
-| NFR-X06 | Accessibility        | [Accessibility standard for primary workflows.]                      | [Standard, e.g. WCAG 2.1 AA for contrast, keyboard, screen readers.]            | Should   | UI/UX Lead    | Draft  |
-| NFR-X07 | Delivery Feasibility | [Scope must remain deliverable in the planned schedule.]             | [Delivery window.]                                                              | Should   | Product Owner | Draft  |
+| NFR-X01 | Security             | Credentials/tokens are never stored or logged in plaintext (see [F-008](./f-008-provider-auth-configuration.md)); dependencies are scanned for known vulnerabilities; write paths align with OWASP Top 10 practices relevant to a CLI tool. | Zero plaintext secrets in config files/logs, verified by review; dependency vulnerability scan runs in CI with no unresolved Critical/High findings. | Must     | Tech Lead     | Clarified |
+| NFR-X02 | Privacy              | DevWorkWire stores no personal data beyond what it reads from/writes to the configured Jira instance; local config/cache holds no PII beyond connection settings. | No PII fields persisted in local DevWorkWire storage beyond the config covered by [F-008](./f-008-provider-auth-configuration.md), verified by code review. | Must     | Tech Lead     | Clarified |
+| NFR-X03 | Testability          | Core application logic (`WorkItemService`, provider adapters) is covered by automated tests. | ≥80% line coverage on `WorkItemService` and provider adapter modules, measured in CI. | Must     | Tech Lead     | Clarified |
+| NFR-X04 | Performance          | CLI operations (preview, query) remain responsive for typical document/backlog sizes. | TBD — no fixed latency target yet; to be set once representative document/backlog sizes are known. | Should   | Tech Lead     | Draft  |
+| NFR-X05 | Scalability          | Backlog volume stays within what a single Jira project can hold, per the single-project-per-config scope in [F-008](./f-008-provider-auth-configuration.md). | TBD — no fixed capacity number; scope is bounded by single-project use. Revisit if multi-project support is added. | Should   | Tech Lead     | Draft  |
+| NFR-X06 | Accessibility        | Not applicable as a GUI standard — `dwire` is a terminal CLI with no graphical interface. Terminal output avoids color-only signaling of state. | CLI errors/warnings are prefixed with text (not signaled by color alone), verified by manual review. | Should   | Tech Lead     | Clarified |
+| NFR-X07 | Delivery Feasibility | Scope must remain deliverable in the planned schedule.               | TBD — no committed delivery window yet.                                        | Should   | Product Owner | Draft  |
 
 ---
 
@@ -93,4 +110,4 @@ Implementation team has confirmed:
 
 ---
 
-**Last Updated**: YYYY-MM-DD
+**Last Updated**: 2026-08-28

@@ -1,211 +1,74 @@
-# Security Architecture
+---
+sidebar_position: 1
+---
 
-| Attribute        | Value                       |
-| ---------------- | --------------------------- |
-| **Project**      | [Project Name]              |
-| **Version**      | 0.1                         |
-| **Status**       | Draft                       |
+# Security architecture
 
-## Table of Contents
+DevWorkWire is a local CLI that sends requests to the configured Jira project.
+This page describes the current trust boundary for the CLI-first AI
+integration. [ADR-011](../../04-decisions/adr-011-cli-first-agent-integration.md)
+replaces the earlier MCP preview-handle proposal.
 
-- [Security Objectives and Scope](#security-objectives-and-scope)
-- [Security Architecture Overview](#security-architecture-overview)
-- [Authentication Strategy](#authentication-strategy)
-- [Authorization Model](#authorization-model)
-- [Data Protection](#data-protection)
-- [OWASP Top 10 Compliance Mapping](#owasp-top-10-compliance-mapping)
-- [Network Security Architecture](#network-security-architecture)
-- [Secrets Management Strategy](#secrets-management-strategy)
-- [Security Headers and Web Best Practices](#security-headers-and-web-best-practices)
-- [Input Validation and Sanitization](#input-validation-and-sanitization)
-- [API Security](#api-security)
-- [Security Monitoring and Incident Response](#security-monitoring-and-incident-response)
-- [Secure Development and Security Testing Approach](#secure-development-and-security-testing-approach)
-- [ADR and Diagram References](#adr-and-diagram-references)
-- [Source References](#source-references)
-
-## Security Objectives and Scope
-
-- [Objective 1, e.g. protect user data from unauthorized access.]
-- [Objective 2, e.g. maintain availability under load and abuse.]
-- [Scope: what is in and out of bounds for this document.]
-
-## Security Architecture Overview
-
-[Provide a high-level view of how security layers compose. A mermaid diagram showing the defense-in-depth layers works well here.]
-
-```mermaid
-flowchart TB
-  U[Client] --> LB[Load Balancer / CDN]
-  LB --> API[API Layer]
-  API --> AUTH[Auth + AuthZ]
-  AUTH --> APP[Application Layer]
-  APP --> DB[(Database)]
-```
-
-## Authentication Strategy
-
-### Selected Model
-
-[State the chosen authentication mechanism (e.g. JWT access + refresh tokens, session cookies, OAuth 2.0, SSO).]
-
-### Authentication Endpoints
-
-| Endpoint | Method | Purpose |
-| -------- | ------ | ------- |
-| `/api/v1/auth/login` | POST | [Description] |
-| `/api/v1/auth/register` | POST | [Description] |
-| `/api/v1/auth/refresh` | POST | [Description] |
-| `/api/v1/auth/logout` | POST | [Description] |
-
-### Authentication Controls
-
-- [Rate limiting on login attempts.]
-- [Password complexity requirements.]
-- [Email verification flow.]
-- [Token lifetime and revocation rules.]
-
-### Token Structure
-
-```json
-{
-  "sub": "user_id",
-  "role": "string",
-  "iat": 1234567890,
-  "exp": 1234571490
-}
-```
-
-> Adjust claims to match your authorization model. Document any custom claims.
-
-## Authorization Model
-
-### RBAC + Resource Attributes
-
-[Describe the role hierarchy and how resource-level ownership is enforced.]
-
-### Least-Privilege Rules
-
-- [Rule 1, e.g. role X cannot access resources owned by role Y.]
-- [Rule 2, e.g. all requests are denied by default.]
-
-### Authorization Flow
+## Security architecture overview
 
 ```mermaid
 flowchart LR
-  API[API Layer] --> AUTH[Role check]
-  AUTH --> APP[Ownership / RLS check]
-  APP --> DB[(Database)]
+  user[Developer] -->|authorizes task| agent[Agent with shell access]
+  agent -->|runs approved command| cli[dwire CLI]
+  markdown[Untrusted Markdown] -->|validated as data| cli
+  cli -->|reads and writes| state[(Local import state)]
+  cli -->|authenticated HTTPS| jira[Jira]
+  jira -->|untrusted issue content| cli
 ```
 
-## Data Protection
+An AI agent may read instructions in source Markdown or returned Jira text.
+Those strings are task data, not authority to expand the user's request. The
+agent's shell permission is controlled by its host; the CLI cannot verify the
+user's conversation or task approval.
 
-### Encryption at Rest
+## Authorization model
 
-- [Which columns/fields are encrypted.]
-- [Key management approach.]
+- Direct `create-epic` and `create-story` commands write immediately.
+- `import-folder` validates and previews local content. It asks a terminal user
+  to confirm or requires `--yes` in non-interactive and JSON runs.
+- The portable skill directs an agent to write only within the approved task,
+  inspect the preview, and stop when outcomes are partial or uncertain.
+- These instructions do not create a server-side per-write confirmation gate.
+  Other local processes with the user's Jira credentials can run `dwire` too.
 
-### Encryption in Transit
+## Credentials and local data
 
-- [TLS version and cipher requirements.]
-- [Internal service communication.]
+The current CLI obtains Jira settings from its application/project config and
+environment values. Its local `.devworkwire-import.json` file contains Jira
+keys, destination information, and source hashes, but no API token. It is
+needed for resumable imports and should travel with the source folder when
+that folder is moved. Logs go to stderr so JSON command results remain on
+stdout. Review the current [CLI configuration guide](../interfaces/interface-contract.md)
+and application repository documentation for exact settings.
 
-### Sensitive Data Handling
+## Input validation and recovery
 
-- [Which fields are classified as sensitive.]
-- [Logging redaction rules.]
-- [Deletion behavior per privacy NFR.]
+Folder preview validates Markdown structure before import writes. The importer
+records pending attempts before calling Jira. A definite story rejection may
+leave a partial import while later stories continue; an uncertain outcome
+stops the import. Do not retry an uncertain write until Jira and the local
+state have been inspected. The skill documents that stopping rule for agents.
 
-## OWASP Top 10 Compliance Mapping
+## Supply chain security
 
-| OWASP Category | Controls in Place | Status |
-| -------------- | ----------------- | ------ |
-| A01: Broken Access Control | [Controls] | [Draft/Implemented] |
-| A02: Cryptographic Failures | [Controls] | [Draft/Implemented] |
-| A03: Injection | [Controls] | [Draft/Implemented] |
-| A04: Insecure Design | [Controls] | [Draft/Implemented] |
-| A05: Security Misconfiguration | [Controls] | [Draft/Implemented] |
-| A06: Vulnerable Components | [Controls] | [Draft/Implemented] |
-| A07: Auth Failures | [Controls] | [Draft/Implemented] |
-| A08: Data Integrity Failures | [Controls] | [Draft/Implemented] |
-| A09: Logging Failures | [Controls] | [Draft/Implemented] |
-| A10: SSRF | [Controls] | [Draft/Implemented] |
+Packaging and release controls remain the subject of the proposed
+[ADR-007](../../04-decisions/adr-007-packaging-and-release.md). Its claims
+should not be treated as proof that a release workflow is already deployed.
 
-## Network Security Architecture
+## Security monitoring and incident response
 
-- [VPC / subnet layout.]
-- [Ingress/egress rules.]
-- [WAF or DDoS protection.]
+The CLI has no hosted service, inbound listener, or telemetry system. Local
+command output, exit status, and Jira audit history are the current sources
+for investigation. Incident response procedures beyond those sources are
+`TBD`.
 
-## Secrets Management Strategy
+## Incident response lifecycle
 
-| Secret Type | Storage | Rotation | Access |
-| ----------- | ------- | -------- | ------ |
-| Database credentials | [Platform secrets manager] | [On compromise / schedule] | [Least-privilege] |
-| API keys | [Platform secrets manager] | [Per-policy] | [Service account] |
-| JWT signing key | [Platform secrets manager] | [On schedule] | [Backend only] |
-
-## Security Headers and Web Best Practices
-
-| Header | Value | Purpose |
-| ------ | ----- | ------- |
-| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Force HTTPS |
-| `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
-| `X-Frame-Options` | `DENY` | Prevent clickjacking |
-| `Content-Security-Policy` | [CSP directives] | Restrict resource origins |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
-
-## Input Validation and Sanitization
-
-- [Schema validation on all request bodies (e.g. Pydantic, Zod, JSON Schema).]
-- [SQL parameterization / ORM usage — no raw queries.]
-- [XSS prevention via output encoding.]
-- [File upload validation: type, size, content inspection.]
-
-## API Security
-
-- [All endpoints require authentication unless explicitly public.]
-- [Rate limiting per endpoint class (see API Design Standards).]
-- [CORS policy: allowed origins, credentials, headers.]
-- [Idempotency for non-GET mutations where appropriate.]
-
-## Security Monitoring and Incident Response
-
-### Monitoring
-
-- [Auth failures and brute-force attempts are logged and alerted.]
-- [Dependency vulnerability scanning in CI.]
-- [Runtime dependency alerts (Dependabot, Snyk, etc.).]
-
-### Incident Response Lifecycle
-
-1. **Detect** — alert fires or user report received
-2. **Triage** — assess severity and scope
-3. **Contain** — revoke access, block IPs, disable compromised accounts
-4. **Eradicate** — patch the vulnerability
-5. **Recover** — redeploy from clean state
-6. **Review** — post-incident report within [N] business days
-
-## Secure Development and Security Testing Approach
-
-- [SAST in CI pipeline.]
-- [Dependency audit in CI pipeline.]
-- [Periodic penetration testing schedule.]
-- [Security training for contributors.]
-
-## ADR and Diagram References
-
-- [Authentication ADR](../../04-decisions/README.md)
-- [Secrets Management ADR](../../04-decisions/README.md)
-- [Containerization ADR](../../04-decisions/README.md)
-- [Threat Model](./threat-model.md)
-
-## Source References
-
-- [API Design Standards](../api/api-design-standards.md)
-- [Deployment Architecture](../ops/deployment-architecture.md)
-- [Feature Requirements](../../01-requirements/README.md)
-
----
-
-**Last Updated**: YYYY-MM-DD
+When a write result is uncertain, stop automated retries, inspect the Jira
+project and `.devworkwire-import.json`, then use the specific import recovery
+command if needed. A separate organizational incident process is `TBD`.

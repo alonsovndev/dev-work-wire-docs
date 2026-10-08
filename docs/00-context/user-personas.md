@@ -1,75 +1,36 @@
-# User Personas
-
-**Purpose:** Define core user personas aligned to the [Project Name] overview to ensure requirements and workflows serve the target audiences.
-
-> Create one persona per distinct stakeholder type identified in [overview.md](./overview.md) (typically 2–4). Use the template block below for each persona. Base personas on real research or interviews where possible; otherwise mark assumptions explicitly.
-
+---
+sidebar_position: 2
 ---
 
-## Persona 1: [Persona Label] (Primary)
+# User personas
 
-**Name:** [Representative first name]
-**Role:** [Job title or role]
-**Experience:** [Years of experience / technical proficiency]
+These are illustrative roles, not findings from user interviews. They guide
+CLI and skill design; individual preferences remain assumptions to validate.
 
-### Primary Goals
+## Persona 1: Solo/Small-Team Developer (Primary)
 
-- [What this persona is trying to achieve with the product.]
-- [What this persona is trying to achieve with the product.]
+**Maya** prepares an Epic and Stories in Markdown, runs `dwire` in a terminal,
+and wants a clear preview before importing. She also fetches, lists, and
+creates individual Jira issues. A re-run with its local state file should skip
+items already uploaded. Updating those items in Jira is a future capability;
+current re-runs do not do it.
 
-### Pain Points
+## Persona 2: Developer Directing an AI Agent (Secondary)
 
-- [Current friction, unmet need, or recurring problem.]
-- [Current friction, unmet need, or recurring problem.]
+**Idris** approves a bounded task for a terminal-capable coding agent. The
+agent uses the installed `dwire` CLI and the portable skill to read or create
+work items. Idris wants the agent to inspect a folder preview, stay within the
+approved task, report created keys, and stop after uncertain or partial
+results. The first skill does not perform comments, transitions, or PR
+references because those commands do not exist yet.
 
-### Needs & Expectations
+The CLI cannot verify the agent's task approval. Direct create commands write
+immediately; `import-folder --yes` writes without a terminal prompt after its
+local preview. Idris's agent host controls shell permission, and the skill
+supplies workflow guidance. See
+[ADR-011](../04-decisions/adr-011-cli-first-agent-integration.md).
 
-- [Capability or experience the product must provide for this persona.]
-- [Capability or experience the product must provide for this persona.]
+## Source references
 
-### Success Indicators
-
-- [Observable outcome that shows the product works for this persona.]
-- [Observable outcome that shows the product works for this persona.]
-
-### Quote
-
-> "[One sentence capturing this persona's attitude in their own words.]"
-
----
-
-## Persona 2: [Persona Label] (Secondary)
-
-**Name:** [Representative first name]
-**Role:** [Job title or role]
-**Experience:** [Years of experience / technical proficiency]
-
-### Primary Goals
-
-- [What this persona is trying to achieve with the product.]
-
-### Pain Points
-
-- [Current friction, unmet need, or recurring problem.]
-
-### Needs & Expectations
-
-- [Capability or experience the product must provide for this persona.]
-
-### Success Indicators
-
-- [Observable outcome that shows the product works for this persona.]
-
-### Quote
-
-> "[One sentence capturing this persona's attitude in their own words.]"
-
----
-
-## Source References
-
-- [Project Overview](./overview.md)
-
----
-
-**Last Updated**: YYYY-MM-DD
+- [Project overview](./overview.md)
+- [CLI agent requirements](../01-requirements/f-004-mcp-tool-surface.md)

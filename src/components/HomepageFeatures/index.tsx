@@ -10,30 +10,29 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Structured Content",
+    title: "Validate, Preview, Confirm",
     description: (
       <>
-        Organize your documentation with sidebars, versioning, and
-        a clear hierarchy — so readers find what they need fast.
+        Load an already-refined Epic → Story → Acceptance Criteria structure into your project management platform —
+        validated for consistency and previewed before anything is written, with dedup on every re-run.
       </>
     ),
   },
   {
-    title: "Write, Ship, Repeat",
+    title: "One CLI, One MCP Server",
     description: (
       <>
-        Write in Markdown, preview locally, and deploy with a single
-        command. Focus on your content while the toolchain handles the rest.
+        Drive it by hand with the <code>dwire</code> CLI, or let your AI agent drive it through DevWorkWire's own MCP
+        server — both built on the same core service, with no divergent logic.
       </>
     ),
   },
   {
-    title: "Fully Customizable",
+    title: "Confirm Gate for Every Agent",
     description: (
       <>
-        Extend layouts, themes, and components to match your brand.
-        Built on React so you can customize anything when the defaults
-        aren't enough.
+        Every externally-visible action — comments, transitions, import commits — goes through the same
+        confirm-before-execute gate, whether it's triggered by a human or an AI agent.
       </>
     ),
   },

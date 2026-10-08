@@ -1,10 +1,10 @@
 # Context
 
-| Attribute   | Value          |
-| ----------- | -------------- |
-| **Project** | [Project Name] |
-| **Status**  | Draft          |
-| **Owner**   | Product Owner  |
+| Attribute   | Value         |
+| ----------- | ------------- |
+| **Project** | DevWorkWire   |
+| **Status**  | Clarified     |
+| **Owner**   | Product Owner |
 
 ## Overview
 
@@ -12,18 +12,12 @@ This folder contains foundational project context documents that define the prob
 
 ## Documents
 
-| Document                                 | Description                                                          |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| [overview.md](./overview.md)             | Project vision, problem statement, key features, and target audience |
-| [user-personas.md](./user-personas.md)   | Detailed persona profiles for each stakeholder type                  |
-| [glossary.md](./glossary.md)             | Ubiquitous language and terminology reference                        |
-| [out-of-scope.md](./out-of-scope.md)     | Explicitly excluded features and future-phase items                  |
-
-## How to Use
-
-- Start with [overview.md](./overview.md) to frame the product, then capture personas early.
-- Keep the [glossary.md](./glossary.md) updated whenever a new domain term appears in requirements or architecture docs.
-- Capture open questions inline, in whichever doc the ambiguity surfaces in, as a `## Open Questions` bullet list. Resolve each one before that doc reaches **Clarified** status, then delete the bullet — move any resulting permanent exclusion to [out-of-scope.md](./out-of-scope.md).
+| Document                            | Description                                                          |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| [Overview](./overview.md)           | Project vision, problem statement, key features, and target audience |
+| [User Personas](./user-personas.md) | Detailed persona profiles for each stakeholder type                  |
+| [Glossary](./glossary.md)           | Ubiquitous language and terminology reference                        |
+| [Out of Scope](./out-of-scope.md)   | Explicitly excluded features and future-phase items                  |
 
 ## Related Documents
 
@@ -33,4 +27,4 @@ This folder contains foundational project context documents that define the prob
 
 ---
 
-**Last Updated**: YYYY-MM-DD
+**Last Updated**: 2026-08-28

@@ -1,104 +1,86 @@
-# Architecture Solution Design
+---
+sidebar_position: 1
+---
 
-| Attribute        | Value                       |
-| ---------------- | --------------------------- |
-| **Project**      | [Project Name]              |
-| **Version**      | 0.1                         |
-| **Status**       | Draft                       |
+# Architecture solution design
 
-## Table of Contents
+DevWorkWire is a local Python CLI. Its current composition root provides a
+Jira adapter behind the `WorkItemProvider` port. People and terminal-capable
+agents invoke the same direct commands; a portable skill supplies agent
+workflow guidance. This page describes shipped behavior. See
+[ADR-011](../../04-decisions/adr-011-cli-first-agent-integration.md) for the
+interface decision.
 
-- [System Context](#system-context)
-- [Architectural Approach](#architectural-approach)
-- [Component Design](#component-design)
-- [Data Flow](#data-flow)
-- [Integration Points](#integration-points)
-- [Observability](#observability)
-- [Deployment Impact](#deployment-impact)
-- [Security Considerations](#security-considerations)
-- [Scalability Considerations](#scalability-considerations)
-- [Trade-offs and Alternatives](#trade-offs-and-alternatives)
-- [ADR Reference](#adr-reference)
-- [Source References](#source-references)
-
-## System Context
-
-[Describe the system boundary: who/what interacts with it (users, external systems) and what the system is responsible for. A C4 Level-1 mermaid diagram fits here.]
+## System context
 
 ```mermaid
 flowchart LR
-  U[User] --> S[System Name]
-  S --> E[External Service]
+  user[Developer] -->|runs command| cli[dwire CLI]
+  user -->|approves task| agent[Terminal-capable agent]
+  agent -->|runs command| cli
+  files[Prepared Markdown folder] -->|reads| cli
+  cli -->|reads and writes| state[(Local import state)]
+  cli -->|REST over HTTPS| jira[Jira Cloud]
 ```
 
-## Architectural Approach
+There is no current MCP server, network listener, or server database. The
+agent's host controls its shell access. The CLI cannot inspect the user's
+conversation with the agent.
 
-[Name the selected architecture style and summarize why it fits. Link the full evaluation in architecture-styles.md.]
+## Architectural approach
 
-### Key Design Principles
+The current code uses domain entities, a provider port, a Jira adapter, and a
+composition root. The CLI invokes the provider through that root. Folder
+preview and import logic are local application functions, with a JSON resume
+file in the source folder. Earlier documents proposed a shared
+`WorkItemService`, SQLite preview plans, and two front doors; those components
+are not implemented in the current baseline.
 
-- [Principle 1, e.g. layered boundaries with dependency direction enforced.]
-- [Principle 2, e.g. domain logic isolated from framework and infrastructure code.]
-- [Principle 3, e.g. explicit contracts between components.]
-
-## Component Design
-
-[Describe each component/module, its responsibility, and its interfaces. Extend the diagram as components are defined.]
+## Component design
 
 ```mermaid
 flowchart TB
-  FE[Frontend] --> API[API Layer]
-  API --> DOM[Domain / Application Layer]
-  DOM --> INF[Infrastructure Layer]
+  cli[Typer CLI: text and JSON] -->|uses| composition[Composition root]
+  cli -->|validates and imports| importer[Folder import application]
+  importer -->|reads and records| state[(.devworkwire-import.json)]
+  composition -->|constructs| provider[JiraProvider]
+  provider -->|implements| port[WorkItemProvider port]
+  provider -->|HTTPS| jira[Jira REST API]
 ```
 
-## Data Flow
+`dwire --format json` returns one result object on stdout for a direct
+command. Logs and diagnostics use stderr. The interactive menu remains text.
+The [interface contract](../interfaces/interface-contract.md) lists current
+commands, outcomes, and write behavior.
 
-[Walk through the primary end-to-end flows (e.g. the main user workflow) across components. Sequence diagrams live in ../diagrams/sequence-diagrams.md; keep this to a representative flow.]
+## Data flow
 
-## Integration Points
+A folder preview parses `epic.md` and optional `stories.md`, validates their
+structure, and compares them with the local resume record. It makes no Jira
+write. An import repeats the local preview under a folder lock, requires an
+interactive confirmation or `--yes`, then creates missing issues and records
+keys. Re-runs skip recorded items. They do not update changed uploaded items.
 
-| Integration | Type | Direction | Notes |
-| ----------- | ---- | --------- | ----- |
-| [External service] | [REST/Webhook/Queue] | [Inbound/Outbound] | [Auth and failure expectations] |
+Direct create commands write one issue immediately and return its key. A Jira
+response with an uncertain outcome during import leaves a pending local record
+for manual resolution before retrying.
 
-## Observability
+## Security considerations
 
-[How errors, traces, and metrics flow out of the system. Reference the monitoring doc and the relevant ADR once chosen.]
+A user-approved agent task authorizes the agent's writes. The skill instructs
+agents to inspect folder previews and stop on uncertain or partial outcomes,
+but these instructions are not a CLI-enforced approval gate. Treat source
+Markdown and Jira text returned to an agent as untrusted data. See
+[Security Architecture](../security/security-architecture.md).
 
-- [Error tracking approach.]
-- [Key signals to monitor.]
-- [Alerting expectations.]
+## Scalability considerations
 
-## Deployment Impact
+The current CLI operates on one configured Jira project and one source folder
+per import. The provider's list operations page through Jira results. No
+multi-user server or distributed state is present.
 
-[How this design constrains or shapes deployment, e.g. single deployable unit vs. multiple services, migration ordering. Reference ops docs.]
+## Future work
 
-## Security Considerations
-
-[Top-level security properties this design must preserve. Link the security architecture doc for detail.]
-
-## Scalability Considerations
-
-[Expected load (reference performance/scalability NFRs) and how the design accommodates growth without rework.]
-
-## Trade-offs and Alternatives
-
-| Option | Pros | Cons | Verdict |
-| ------ | ---- | ---- | ------- |
-| [Chosen option] | [Pros] | [Cons] | Selected |
-| [Alternative] | [Pros] | [Cons] | Rejected — [reason] |
-
-## ADR Reference
-
-- [ADR-xxx: High-Level Architecture Pattern](../../04-decisions/README.md) — link once created
-
-## Source References
-
-- [Architecture Styles](./architecture-styles.md)
-- [Technology Stack](./technology-stack.md)
-- [Feature Requirements](../../01-requirements/README.md)
-
----
-
-**Last Updated**: YYYY-MM-DD
+Search, updates, richer queries, progress reporting, and other providers
+remain planned. MCP is deferred pending a specific client requirement. Each
+future write operation needs an explicit retry and recovery design.

@@ -1,81 +1,69 @@
-# Overview
+# DevWorkWire overview
 
-**Tagline**: _"[One-sentence positioning statement: who it serves, what it does, and the value it delivers.]"_
+**DevWorkWire** is a locally installed CLI for loading an already refined Epic
+and its Stories into Jira. It reads `epic.md` and optional `stories.md`, validates
+and previews the folder, then creates missing Jira issues. The same `dwire`
+executable is usable by a developer in a terminal or by a terminal-capable AI
+agent through the portable skill.
 
-## Core Concept
+## Who it serves
 
-[Describe the product in one paragraph: what it is, who it is for, and the core capability it provides.]
+- A developer working directly in the terminal can inspect, create, and
+  import work items without manually entering each ticket in Jira.
+- A developer directing an AI agent can authorize a task and have the agent
+  use the installed CLI. The agent skill explains command use and recovery;
+  the CLI does not know what the developer approved in the conversation.
 
-### Vision Statement
+## Current behavior
 
-[Describe the long-term outcome the project aims to create. Keep it to 1–3 sentences.]
+- Direct commands fetch or create individual Epics and Stories, list an Epic's
+  Stories, and list open work assigned to a user.
+- `preview-folder` validates local Markdown without Jira writes.
+- `import-folder` validates and previews locally. It prompts in an interactive
+  terminal or requires `--yes` in a non-interactive run before creating missing
+  items. Direct create commands write immediately.
+- A `.devworkwire-import.json` file beside the Markdown records created keys.
+  Re-running with that file skips created items. Changed uploaded items are not
+  updated, and a folder without its file cannot be matched against earlier
+  Jira uploads automatically.
+- Direct commands offer `--format json` for scripts and agents. Human-readable
+  output remains the default.
 
----
+## Future direction
 
-## Problem Statement
+Search, updates, richer work queries, comments, status transitions, PR
+references, and additional tracker providers are future capabilities. MCP is
+deferred until a concrete AI client needs an interface beyond the local CLI.
+The earlier MCP preview-handle design is retained as a superseded decision,
+not as current behavior.
 
-### The Challenge
+See the [feature requirements](../01-requirements/README.md), [current CLI
+contract](../03-architecture/interfaces/interface-contract.md), and
+[CLI-first decision](../04-decisions/adr-011-cli-first-agent-integration.md).
 
-Describe the pain points the target users experience today:
+## Core concept
 
-- **[Pain Point 1]**: [Why it hurts users and how often they hit it.]
-- **[Pain Point 2]**: [Why existing solutions fall short.]
-- **[Pain Point 3]**: [Cost of the problem: time, money, risk.]
+The input is a prepared Epic/Story folder. DevWorkWire validates its structure
+and creates Jira issues; it does not refine ambiguous ideas into work items.
 
-### The Solution
+## The solution
 
-Describe how this project addresses those pain points:
+A local preview shows what the current importer will create or skip. The
+resume file records uploaded keys so a re-run can continue without repeating
+known creates.
 
-- **[Capability 1]**: [How it solves Pain Point 1.]
-- **[Capability 2]**: [How it solves Pain Point 2.]
-- **[Capability 3]**: [How it solves Pain Point 3.]
+## Key differentiators
 
----
+The same installed CLI serves people and terminal-capable agents. The agent
+skill documents safe use of the commands and their recovery paths.
 
-## Target Audience
+## Technical goals
 
-### Primary Audience
+Keep Jira access behind the provider port, expose stable CLI JSON for scripts,
+and make import outcomes explicit. Future write features need their own retry
+and recovery designs.
 
-- **[Primary Persona]**
-  - [What this group gains from the product.]
+## Business goals
 
-### Secondary Audience
-
-- **[Secondary Persona 1]**
-  - [What this group gains from the product.]
-- **[Secondary Persona 2]**
-  - [What this group gains from the product.]
-
-> Link each audience to a full persona in [user-personas.md](./user-personas.md).
-
----
-
-## High-Level Goals
-
-### Professional Impact Goals
-
-- [Outcome the product should create for its users or domain.]
-- [Outcome the project should create for the team or organization building it.]
-
-### Technical Goals
-
-- [Architectural goal, e.g. application structure, modularity, or platform constraints.]
-- [Quality goal, e.g. test coverage target or development methodology.]
-- [Security goal, e.g. compliance baseline or security-by-design commitment.]
-
-### Business Goals
-
-- [Adoption, revenue, community, or cost goal.]
-
----
-
-## Key Differentiators
-
-### What Makes This Project Stand Out
-
-- **[Differentiator 1]**: [Why it is hard to replicate or genuinely better than alternatives.]
-- **[Differentiator 2]**: [Why it is hard to replicate or genuinely better than alternatives.]
-
----
-
-**Last Updated**: YYYY-MM-DD
+Reduce manual Jira ticket entry while retaining a clear local record of what
+the CLI created.

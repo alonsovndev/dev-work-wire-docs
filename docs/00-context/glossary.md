@@ -1,45 +1,48 @@
-# Glossary
-
-This document defines key terms used throughout the requirements and architecture documentation. Keep it current: whenever a new domain term appears in any document, add it here first.
-
-> Organize terms into sections that match your domain. The sections below are starting points — add, rename, or remove them as needed. Each entry follows the format: **Term** followed by a one-to-three sentence definition precise enough for engineers, designers, and stakeholders to share one meaning.
-
-## User Roles
-
-**[Role Name 1]**
-[Definition: who holds this role, what permissions they have, and how the role is granted.]
-
-**[Role Name 2]**
-[Definition: who holds this role, what permissions they have, and how the role is granted.]
-
-## Domain Entities
-
-**[Entity 1]**
-[Definition: what the entity represents, its key attributes, and lifecycle states if any.]
-
-**[Entity 2]**
-[Definition: what the entity represents, its key attributes, and lifecycle states if any.]
-
-## Lifecycle States
-
-**[State 1]**
-[Definition: what triggers this state, what is allowed while in it, and how it ends.]
-
-**[State 2]**
-[Definition: what triggers this state, what is allowed while in it, and how it ends.]
-
-## Business Concepts
-
-**[Concept 1]**
-[Definition: the business meaning, including any limits, quotas, or rules attached to it.]
-
-## Technical Terms
-
-**[Term 1]**
-[Definition: the technical meaning as used in this project, including references to relevant NFRs or ADRs.]
-
+---
+sidebar_position: 3
 ---
 
-**Version**: 0.1
-**Last Updated**: YYYY-MM-DD
-**Owner**: Product Owner
+# Glossary
+
+Terms used in the current CLI-first documentation.
+
+## Work items
+
+**Epic**: The top-level Jira issue described by `epic.md`.
+
+**Story**: A Jira Story linked to an Epic and described by a stable ID in
+`stories.md`.
+
+**Acceptance criteria**: Conditions written in the Story Markdown and sent as
+part of the Story description.
+
+**WorkItemProvider**: The core port implemented by the Jira adapter for the
+supported create and read operations.
+
+## CLI and agent terms
+
+**`dwire`**: The installed DevWorkWire command. Direct commands can return
+human-readable text or one JSON result.
+
+**Preview**: Read-only local parsing and validation of a source folder, with
+create/skip information from its resume file. It does not search Jira for all
+possible duplicates.
+
+**Import state**: The `.devworkwire-import.json` file beside source Markdown.
+It records created Jira keys and pending attempts so a folder import can
+resume.
+
+**Agent skill**: The portable `SKILL.md` instructions that teach a
+terminal-capable agent how to use `dwire`. It adds no Jira capability or CLI
+approval enforcement.
+
+**Approved task**: The user's instruction authorizing an agent to perform
+specific work. The agent must stay within its scope; the CLI cannot inspect
+or verify that conversation.
+
+**Partial import**: An import that created at least one item in the current
+invocation but ended with an error. The caller must inspect created keys and
+Jira before retrying.
+
+**MCP**: A possible future adapter for clients that cannot run local commands
+or require native tool discovery. No MCP server is currently shipped.

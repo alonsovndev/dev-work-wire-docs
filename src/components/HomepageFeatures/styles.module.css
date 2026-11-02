@@ -1,6 +1,31 @@
 .features {
-  display: flex;
-  align-items: center;
-  padding: 2rem 0;
-  width: 100%;
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.heading {
+  margin-bottom: 2rem;
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  letter-spacing: -0.025em;
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.grid h3 {
+  font-size: 1.15rem;
+}
+
+.grid p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+}
+
+@media (min-width: 996px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3rem;
+  }
 }

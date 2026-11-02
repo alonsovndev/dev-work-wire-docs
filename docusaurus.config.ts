@@ -7,24 +7,17 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "DevWorkWire",
   tagline:
-    "Load an already-defined work structure into your backlog, validated and duplicate-free — by hand or with your AI agent driving.",
+    "Turn prepared Markdown into Jira work, with local previews and resumable imports.",
   favicon: "img/favicon.svg",
 
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  // Set the production url of your site here.
-  // For GitHub Pages, it is usually 'https://<organizationName>.github.io'.
-  url: "https://alonsovndev.github.io",
-  // Set the /<baseUrl>/ pathname under which your site is served.
-  // For GitHub Pages deployment, it is often '/<projectName>/'.
-  baseUrl: "/dev-work-wire-docs/",
-
-  // GitHub Pages deployment config.
-  // Replace with your GitHub org/user name and repository name.
-  organizationName: "alonsovndev",
-  projectName: "dev-work-wire-docs",
+  // SITE_URL keeps canonical links stable across Cloudflare preview deployments.
+  url: process.env.SITE_URL || process.env.CF_PAGES_URL || "http://localhost:3000",
+  baseUrl: "/",
+  trailingSlash: true,
 
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
@@ -97,8 +90,8 @@ const config: Config = {
               to: "/docs/intro",
             },
             {
-              label: "Getting Started",
-              to: "/docs/intro",
+              label: "CLI contract",
+              to: "/docs/architecture/interfaces/interface-contract/",
             },
           ],
         },

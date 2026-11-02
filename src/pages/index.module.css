@@ -1,23 +1,147 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
 .heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.eyebrow {
+  margin-bottom: 1rem;
+  color: var(--ifm-color-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  max-width: 16ch;
+  margin-bottom: 1.5rem;
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.heroDescription {
+  max-width: 42rem;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  line-height: 1.7;
 }
 
 .buttons {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2rem 0 1.25rem;
+}
+
+.buttons a {
+  white-space: normal;
+}
+
+.heroNote,
+.commandExample p {
+  margin-bottom: 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
+}
+
+.section {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+}
+
+.section h2 {
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  letter-spacing: -0.025em;
+}
+
+.workflow {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.steps {
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.steps li {
+  padding-left: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.steps li::marker {
+  color: var(--ifm-color-primary);
+  font-weight: 700;
+}
+
+.commandExample {
+  min-width: 0;
+}
+
+.commandExample > a {
+  display: inline-block;
+  padding: 0.75rem 0;
+}
+
+.documentation {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.docsGrid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.docLink {
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-background-color);
+}
+
+.docLink h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.15rem;
+  color: var(--ifm-color-primary);
+}
+
+.docLink p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.docLink:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+.docLink:focus-visible,
+.buttons a:focus-visible,
+.commandExample > a:focus-visible {
+  outline: 3px solid var(--ifm-color-primary);
+  outline-offset: 4px;
+}
+
+@media (min-width: 640px) {
+  .docsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 996px) {
+  .workflow {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .docsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

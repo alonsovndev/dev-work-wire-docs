@@ -1,61 +1,33 @@
 import type { ReactNode } from "react";
-import clsx from "clsx";
 import Heading from "@theme/Heading";
 import styles from "./styles.module.css";
 
-type FeatureItem = {
-  title: string;
-  description: ReactNode;
-};
-
-const FeatureList: FeatureItem[] = [
+const features = [
   {
-    title: "Validate, Preview, Confirm",
-    description: (
-      <>
-        Load an already-refined Epic → Story → Acceptance Criteria structure into your project management platform —
-        validated for consistency and previewed before anything is written, with dedup on every re-run.
-      </>
-    ),
+    title: "Preview without Jira writes",
+    description: <>Validate your Markdown and inspect create, skip, and unresolved items locally with <code>preview-folder</code>.</>,
   },
   {
-    title: "One CLI, One MCP Server",
-    description: (
-      <>
-        Drive it by hand with the <code>dwire</code> CLI, or let your AI agent drive it through DevWorkWire's own MCP
-        server — both built on the same core service, with no divergent logic.
-      </>
-    ),
+    title: "Resume with a local record",
+    description: <>Imports record created Jira keys beside your Markdown. Keep the resume file so re-runs can skip recorded items; changed uploaded items are not updated.</>,
   },
   {
-    title: "Confirm Gate for Every Agent",
-    description: (
-      <>
-        Every externally-visible action — comments, transitions, import commits — goes through the same
-        confirm-before-execute gate, whether it's triggered by a human or an AI agent.
-      </>
-    ),
+    title: "One CLI for people and agents",
+    description: <>Use <code>dwire</code> directly, or let a terminal-capable agent use the same commands through a portable skill. Direct commands support JSON output.</>,
   },
 ];
 
-function Feature({ title, description }: FeatureItem) {
-  return (
-    <div className={clsx("col col--4")}>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function HomepageFeatures(): ReactNode {
   return (
-    <section className={styles.features}>
+    <section className={styles.features} aria-labelledby="current-capabilities">
       <div className="container">
-        <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
+        <Heading as="h2" id="current-capabilities" className={styles.heading}>What you can do today</Heading>
+        <div className={styles.grid}>
+          {features.map((feature) => (
+            <div key={feature.title}>
+              <Heading as="h3">{feature.title}</Heading>
+              <p>{feature.description}</p>
+            </div>
           ))}
         </div>
       </div>

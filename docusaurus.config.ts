@@ -14,8 +14,8 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  // SITE_URL keeps canonical links stable across Cloudflare preview deployments.
-  url: process.env.SITE_URL || process.env.CF_PAGES_URL || "http://localhost:3000",
+  // Preview builds should keep canonical URLs on the production domain.
+  url: process.env.SITE_URL || "https://dwire-docs.alonsovndev.com",
   baseUrl: "/",
   trailingSlash: true,
 

@@ -55,8 +55,8 @@ The `examples/work-items/` folder contains reference Markdown work items.
 
 ## Cloudflare Pages deployment
 
-The production hostname is **TBD** until a Pages project is created. This
-repository does not provision a Cloudflare project or configure account access.
+The production site is [dwire-docs.alonsovndev.com](https://dwire-docs.alonsovndev.com/).
+This repository does not provision a Cloudflare project or configure account access.
 Follow [Cloudflare's Docusaurus guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-docusaurus-site/)
 to connect the existing repository.
 
@@ -79,10 +79,11 @@ to connect the existing repository.
 3. Set `SKIP_DEPENDENCY_INSTALL=1` in both production and preview build
    environments. The build command above installs from the committed lockfile
    instead of using Cloudflare's automatic dependency installation.
-4. Deploy and record the assigned `https://<assigned-project>.pages.dev` hostname.
-   Set `SITE_URL` to that full origin in **both production and preview** build
-   environments, then rebuild. This keeps canonical URLs and the sitemap pointed
-   at the stable production hostname.
+4. Connect the production custom domain `dwire-docs.alonsovndev.com` to the Pages
+   project. The Docusaurus configuration defaults to that origin for canonical
+   URLs and the sitemap. If `SITE_URL` is already configured, set it to
+   `https://dwire-docs.alonsovndev.com` in both production and preview build
+   environments, then rebuild.
 5. Enable preview deployments for non-production branches. Branch pushes produce
    preview URLs; pushes to `main` update production after a successful build.
 
@@ -91,26 +92,25 @@ integration. The build runs on Cloudflare rather than in GitHub Actions.
 
 ### URL configuration
 
-`docusaurus.config.ts` uses the first nonempty value in this order:
-
-1. `SITE_URL`: the stable production origin you configure.
-2. `CF_PAGES_URL`: the deployment URL injected by Cloudflare, useful for the first
-   build before the production hostname is known.
-3. `http://localhost:3000`: the local and GitHub validation-build fallback.
+`docusaurus.config.ts` uses `https://dwire-docs.alonsovndev.com` as the default
+canonical origin, including for local and preview builds. An optional `SITE_URL`
+**build-time** environment variable overrides it. Cloudflare deployment URLs do
+not change canonical URLs, and runtime environment bindings cannot change
+metadata in an already generated static build.
 
 Set origins without a path. The site always uses `baseUrl: "/"` and trailing-slash
 routes. Preview deployments remain accessible at their own URLs; their canonical
-links point to production when `SITE_URL` is configured.
+links point to production unless `SITE_URL` is explicitly overridden.
 
 To test a production origin locally:
 
 ```sh
-SITE_URL=https://example.pages.dev npm run build
+npm run build
 npm run serve
 ```
 
-`example.pages.dev` is an example, not this project's assigned hostname. Cloudflare
-build variables and runtime selection are described in the official
+The production hostname is used automatically; `npm run serve` still serves the
+files at localhost. Cloudflare build variables and runtime selection are described in the official
 [build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)
 and [build image](https://developers.cloudflare.com/pages/configuration/build-image/)
 guides.

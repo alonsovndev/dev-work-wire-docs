@@ -54,7 +54,8 @@ These examples assume `dwire` is installed and Jira access is configured. Replac
    Markdown. Re-running with that file skips recorded items and can continue
    missing ones. Changed uploaded items are skipped, not updated in Jira.
 
-:::note Write boundaries and recovery
+:::note[Write boundaries and recovery]
+
 Direct `create-epic` and `create-story` commands write immediately. JSON-mode and
 other non-interactive imports require `--yes` when there is work to create.
 Agents must stay within the user's approved task; the CLI cannot verify a
@@ -63,6 +64,7 @@ conversation's authorization.
 Without the resume file, the importer cannot identify earlier uploads from Jira
 alone. If a write's outcome is uncertain, inspect Jira before resolving or
 retrying it. Read the [write and recovery rules](./03-architecture/interfaces/interface-contract.md#writes-and-recovery).
+
 :::
 
 ## Choose a reading path
